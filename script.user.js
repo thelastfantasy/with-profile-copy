@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         With Profile Copy
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
+// @version      1.0.2
 // @description  with.isのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します
 // @author       Your Name
 // @match        https://with.is/users/*
@@ -15,6 +15,18 @@
 "use strict";
 (function () {
     'use strict';
+    const CSS_SELECTORS = {
+        WITH_IS: {
+            NICKNAME: '.profile_main-nickname',
+            AGE_ADDRESS: '.profile_main-age-address',
+            INTRODUCTION: '.profile-introduction',
+            COMMON_POINTS: '.profile-affinities_list.on-user-detail li',
+            BASIC_INFO_TABLE: '.profile-detail table',
+            BASIC_INFO_ROW: 'tr',
+            BASIC_INFO_HEADER: 'th',
+            BASIC_INFO_DATA: 'td'
+        }
+    };
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     }
@@ -28,7 +40,7 @@
         addCopyButton();
     }
     function addCopyButton() {
-        const nicknameElement = document.querySelector('.profile_main-nickname');
+        const nicknameElement = document.querySelector(CSS_SELECTORS.WITH_IS.NICKNAME);
         if (!nicknameElement) {
             console.log('ユーザー名要素が見つかりません');
             return;
@@ -61,8 +73,9 @@
         }
     }
     function extractUserData() {
-        const nickname = document.querySelector('.profile_main-nickname')?.textContent?.trim() || '見つかりません';
-        const ageAddressElement = document.querySelector('.profile_main-age-address');
+        const selectors = CSS_SELECTORS.WITH_IS;
+        const nickname = document.querySelector(selectors.NICKNAME)?.textContent?.trim() || '見つかりません';
+        const ageAddressElement = document.querySelector(selectors.AGE_ADDRESS);
         let age = '見つかりません';
         let location = '見つかりません';
         if (ageAddressElement) {
@@ -73,24 +86,24 @@
             if (parts.length >= 2)
                 location = parts[1].trim();
         }
-        let introduction = document.querySelector('.profile-introduction')?.textContent?.trim() || '見つかりません';
+        let introduction = document.querySelector(selectors.INTRODUCTION)?.textContent?.trim() || '見つかりません';
         if (introduction.startsWith('自己紹介文')) {
             introduction = introduction.replace(/^自己紹介文\s*/, '');
         }
         const commonPoints = [];
-        const commonPointElements = document.querySelectorAll('.profile-affinities_list.on-user-detail li');
+        const commonPointElements = document.querySelectorAll(selectors.COMMON_POINTS);
         commonPointElements.forEach(el => {
             const text = el.textContent?.trim();
             if (text)
                 commonPoints.push(text);
         });
         const basicInfo = {};
-        const basicInfoTable = document.querySelector('.profile-detail table');
+        const basicInfoTable = document.querySelector(selectors.BASIC_INFO_TABLE);
         if (basicInfoTable) {
-            const rows = basicInfoTable.querySelectorAll('tr');
+            const rows = basicInfoTable.querySelectorAll(selectors.BASIC_INFO_ROW);
             rows.forEach(row => {
-                const th = row.querySelector('th')?.textContent?.trim();
-                const td = row.querySelector('td')?.textContent?.trim();
+                const th = row.querySelector(selectors.BASIC_INFO_HEADER)?.textContent?.trim();
+                const td = row.querySelector(selectors.BASIC_INFO_DATA)?.textContent?.trim();
                 if (th && td) {
                     basicInfo[th] = td;
                 }
