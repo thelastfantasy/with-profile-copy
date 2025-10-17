@@ -1,0 +1,63 @@
+name: Build on Merge to Main
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]
+
+jobs:
+  build:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Verify script.user.js exists
+      run: |
+        if [ ! -f "script.user.js" ]; then
+          echo "❌ script.user.js was not generated"
+          exit 1
+        fi
+
+    - name: Check script.user.js version
+      run: |
+        VERSION=$(grep -oP '@version\s+\K[^\s]+' script.user.js)
+        echo "Generated script.user.js version: $VERSION"
+
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        echo "Package.json version: $PACKAGE_VERSION"
+
+        if [ "$VERSION" != "$PACKAGE_VERSION" ]; then
+          echo "❌ Version mismatch: script.user.js has $VERSION, package.json has $PACKAGE_VERSION"
+          exit 1
+        fi
+
+    - name: Commit and push if changed
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+        if git diff --quiet script.user.js; then
+          echo "No changes to script.user.js"
+        else
+          git add script.user.js
+          git commit -m "chore: regenerate script.user.js after merge [skip ci]"
+          git push
+          echo "✅ Updated script.user.js pushed to main"
+        fi
