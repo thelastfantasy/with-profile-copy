@@ -13,7 +13,12 @@
       "Bash(git push:*)",
       "Bash(git remote add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nFix age extraction and introduction formatting\n\n- Separate age and location from profile_main-age-address element\n- Remove duplicate \"自己紹介文\" prefix from introduction\n- Add age field to template\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(git checkout:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git pull:*)",
+      "Bash(gh pr view:*)"
     ],
     "deny": [],
     "ask": []
