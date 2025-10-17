@@ -4,10 +4,11 @@
   "description": "Tampermonkey userscript for copying with.is user profiles",
   "main": "dist/with-profile-copy.js",
   "scripts": {
-    "build": "tsc && node build.js",
+    "build": "tsc && node build.js && node build-greasyfork.js",
     "dev": "tsc --watch",
-    "clean": "rimraf dist",
-    "prebuild": "npm run clean"
+    "clean": "rimraf dist && del *.user.js 2>nul || true && del script.user.js 2>nul || true",
+    "prebuild": "npm run clean",
+    "greasyfork": "npm run build"
   },
   "keywords": [
     "tampermonkey",
