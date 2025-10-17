@@ -1,6 +1,6 @@
 {
   "name": "with-profile-copy",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Tampermonkey userscript for copying with.is user profiles",
   "main": "dist/with-profile-copy.js",
   "scripts": {
