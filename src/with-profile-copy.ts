@@ -142,7 +142,8 @@
 ユーザー名：${data.nickname}
 年齢：${data.age}
 居住地：${data.location}
-自己紹介文：${data.introduction}
+自己紹介文：
+${data.introduction}
 俺との共通点：
 ${commonPointsText}
 相手の基本情報：
