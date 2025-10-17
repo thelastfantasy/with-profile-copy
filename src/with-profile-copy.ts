@@ -74,12 +74,28 @@
     }
 
     function extractUserData(): UserData {
-        // 用户名和居住地
+        // 用户名
         const nickname = document.querySelector('.profile_main-nickname')?.textContent?.trim() || '未找到';
-        const location = document.querySelector('.profile_main-age-address')?.textContent?.trim() || '未找到';
 
-        // 自我介绍
-        const introduction = document.querySelector('.profile-introduction')?.textContent?.trim() || '未找到';
+        // 年龄和居住地（从同一元素中分离）
+        const ageAddressElement = document.querySelector('.profile_main-age-address');
+        let age = '未找到';
+        let location = '未找到';
+
+        if (ageAddressElement) {
+            const text = ageAddressElement.textContent?.trim() || '';
+            // 分离年龄和居住地（假设格式为 "年龄\n居住地"）
+            const parts = text.split('\n').filter(part => part.trim());
+            if (parts.length >= 1) age = parts[0].trim();
+            if (parts.length >= 2) location = parts[1].trim();
+        }
+
+        // 自我介绍（移除可能存在的重复标题）
+        let introduction = document.querySelector('.profile-introduction')?.textContent?.trim() || '未找到';
+        // 如果自我介绍包含"自己紹介文"，移除它
+        if (introduction.startsWith('自己紹介文')) {
+            introduction = introduction.replace(/^自己紹介文\s*/, '');
+        }
 
         // 共同点
         const commonPoints: string[] = [];
@@ -105,6 +121,7 @@
 
         return {
             nickname,
+            age,
             location,
             introduction,
             commonPoints,
@@ -123,6 +140,7 @@
 
         return `with.isで以下ユーザーとマッチしました。相手の情報は以下になります
 ユーザー名：${data.nickname}
+年齢：${data.age}
 居住地：${data.location}
 自己紹介文：${data.introduction}
 俺との共通点：
@@ -161,6 +179,7 @@ ${basicInfoText}
 
     interface UserData {
         nickname: string;
+        age: string;
         location: string;
         introduction: string;
         commonPoints: string[];
