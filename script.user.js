@@ -30,11 +30,11 @@
     function addCopyButton() {
         const nicknameElement = document.querySelector('.profile_main-nickname');
         if (!nicknameElement) {
-            console.log('未找到用户名称元素');
+            console.log('ユーザー名要素が見つかりません');
             return;
         }
         const copyButton = document.createElement('button');
-        copyButton.textContent = '📋 复制用户信息';
+        copyButton.textContent = '📋 ユーザー情報をコピー';
         copyButton.style.cssText = `
             margin-left: 10px;
             padding: 4px 8px;
@@ -53,18 +53,18 @@
             const userData = extractUserData();
             const promptText = generatePrompt(userData);
             GM_setClipboard(promptText, 'text');
-            showMessage('✅ 用户信息已复制到剪贴板！', 'success');
+            showMessage('✅ ユーザー情報をクリップボードにコピーしました！', 'success');
         }
         catch (error) {
-            console.error('复制失败:', error);
-            showMessage('❌ 复制失败，请检查控制台', 'error');
+            console.error('コピーに失敗しました:', error);
+            showMessage('❌ コピーに失敗しました。コンソールを確認してください', 'error');
         }
     }
     function extractUserData() {
-        const nickname = document.querySelector('.profile_main-nickname')?.textContent?.trim() || '未找到';
+        const nickname = document.querySelector('.profile_main-nickname')?.textContent?.trim() || '見つかりません';
         const ageAddressElement = document.querySelector('.profile_main-age-address');
-        let age = '未找到';
-        let location = '未找到';
+        let age = '見つかりません';
+        let location = '見つかりません';
         if (ageAddressElement) {
             const text = ageAddressElement.textContent?.trim() || '';
             const parts = text.split('\n').filter(part => part.trim());
@@ -73,7 +73,7 @@
             if (parts.length >= 2)
                 location = parts[1].trim();
         }
-        let introduction = document.querySelector('.profile-introduction')?.textContent?.trim() || '未找到';
+        let introduction = document.querySelector('.profile-introduction')?.textContent?.trim() || '見つかりません';
         if (introduction.startsWith('自己紹介文')) {
             introduction = introduction.replace(/^自己紹介文\s*/, '');
         }
