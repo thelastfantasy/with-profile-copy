@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         With Profile Copy
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  在with.is用户页面添加复制按钮，用于生成AI对话提示
+// @version      1.0.1
+// @description  with.isのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します
 // @author       Your Name
 // @match        https://with.is/users/*
 // @grant        GM_setClipboard
@@ -12,7 +12,7 @@
 (function() {
     'use strict';
 
-    // 等待页面加载完成
+    // ページの読み込み完了を待機
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
@@ -20,26 +20,26 @@
     }
 
     function init() {
-        // 检查是否在用户详情页面
+        // ユーザー詳細ページかどうかを確認
         if (!window.location.href.includes('/users/')) {
             return;
         }
 
-        // 添加复制按钮
+        // コピーボタンを追加
         addCopyButton();
     }
 
     function addCopyButton() {
-        // 查找用户名称元素
+        // ユーザー名要素を検索
         const nicknameElement = document.querySelector('.profile_main-nickname');
         if (!nicknameElement) {
-            console.log('未找到用户名称元素');
+            console.log('ユーザー名要素が見つかりません');
             return;
         }
 
-        // 创建复制按钮
+        // コピーボタンを作成
         const copyButton = document.createElement('button');
-        copyButton.textContent = '📋 复制用户信息';
+        copyButton.textContent = '📋 ユーザー情報をコピー';
         copyButton.style.cssText = `
             margin-left: 10px;
             padding: 4px 8px;
@@ -53,7 +53,7 @@
 
         copyButton.addEventListener('click', handleCopy);
 
-        // 将按钮添加到用户名称后面
+        // ボタンをユーザー名の後ろに追加
         nicknameElement.parentNode?.insertBefore(copyButton, nicknameElement.nextSibling);
     }
 
@@ -62,42 +62,42 @@
             const userData = extractUserData();
             const promptText = generatePrompt(userData);
 
-            // 复制到剪贴板
+            // クリップボードにコピー
             GM_setClipboard(promptText, 'text');
 
-            // 显示成功消息
-            showMessage('✅ 用户信息已复制到剪贴板！', 'success');
+            // 成功メッセージを表示
+            showMessage('✅ ユーザー情報をクリップボードにコピーしました！', 'success');
         } catch (error) {
-            console.error('复制失败:', error);
-            showMessage('❌ 复制失败，请检查控制台', 'error');
+            console.error('コピーに失敗しました:', error);
+            showMessage('❌ コピーに失敗しました。コンソールを確認してください', 'error');
         }
     }
 
     function extractUserData(): UserData {
-        // 用户名
-        const nickname = document.querySelector('.profile_main-nickname')?.textContent?.trim() || '未找到';
+        // ユーザー名
+        const nickname = document.querySelector('.profile_main-nickname')?.textContent?.trim() || '見つかりません';
 
-        // 年龄和居住地（从同一元素中分离）
+        // 年齢と居住地（同じ要素から分離）
         const ageAddressElement = document.querySelector('.profile_main-age-address');
-        let age = '未找到';
-        let location = '未找到';
+        let age = '見つかりません';
+        let location = '見つかりません';
 
         if (ageAddressElement) {
             const text = ageAddressElement.textContent?.trim() || '';
-            // 分离年龄和居住地（假设格式为 "年龄\n居住地"）
+            // 年齢と居住地を分離（形式が "年齢\n居住地" と仮定）
             const parts = text.split('\n').filter(part => part.trim());
             if (parts.length >= 1) age = parts[0].trim();
             if (parts.length >= 2) location = parts[1].trim();
         }
 
-        // 自我介绍（移除可能存在的重复标题）
-        let introduction = document.querySelector('.profile-introduction')?.textContent?.trim() || '未找到';
-        // 如果自我介绍包含"自己紹介文"，移除它
+        // 自己紹介（重複するタイトルを削除）
+        let introduction = document.querySelector('.profile-introduction')?.textContent?.trim() || '見つかりません';
+        // 自己紹介に"自己紹介文"が含まれている場合は削除
         if (introduction.startsWith('自己紹介文')) {
             introduction = introduction.replace(/^自己紹介文\s*/, '');
         }
 
-        // 共同点
+        // 共通点
         const commonPoints: string[] = [];
         const commonPointElements = document.querySelectorAll('.profile-affinities_list.on-user-detail li');
         commonPointElements.forEach(el => {
@@ -105,7 +105,7 @@
             if (text) commonPoints.push(text);
         });
 
-        // 基本信息
+        // 基本情報
         const basicInfo: Record<string, string> = {};
         const basicInfoTable = document.querySelector('.profile-detail table');
         if (basicInfoTable) {
@@ -170,7 +170,7 @@ ${basicInfoText}
 
         document.body.appendChild(messageDiv);
 
-        // 3秒后自动移除
+        // 3秒後に自動的に削除
         setTimeout(() => {
             if (messageDiv.parentNode) {
                 messageDiv.parentNode.removeChild(messageDiv);
