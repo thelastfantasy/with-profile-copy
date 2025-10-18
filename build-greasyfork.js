@@ -19,8 +19,8 @@ const header = `// ==UserScript==
 // @grant        GM_setClipboard
 // @license      MIT
 // @supportURL   https://github.com/thelastfantasy/with-profile-copy/issues
-// @updateURL    https://github.com/thelastfantasy/with-profile-copy/raw/main/script.user.js
-// @downloadURL  https://github.com/thelastfantasy/with-profile-copy/raw/main/script.user.js
+// @updateURL    https://github.com/thelastfantasy/with-profile-copy/raw/dist/script.user.js
+// @downloadURL  https://github.com/thelastfantasy/with-profile-copy/raw/dist/script.user.js
 // ==/UserScript==
 
 `;
