@@ -53,7 +53,7 @@ jobs:
           exit 1
         fi
 
-    - name: Commit and push if changed
+    - name: Commit and push to dist branch
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
@@ -63,6 +63,7 @@ jobs:
         else
           git add script.user.js
           git commit -m "chore: regenerate script.user.js after merge [skip ci]"
-          git push
-          echo "✅ Updated script.user.js pushed to main"
+          git checkout -b dist
+          git push origin dist --force
+          echo "✅ Updated script.user.js pushed to dist branch"
         fi
