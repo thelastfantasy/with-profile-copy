@@ -222,22 +222,13 @@
         const basicInfo = {};
         const profileDetails = document.querySelector(selectors.PROFILE_DETAILS);
         if (profileDetails) {
-            const h3Elements = profileDetails.querySelectorAll('h3');
-            const dlElements = profileDetails.querySelectorAll('dl');
-            h3Elements.forEach((h3, index) => {
-                const sectionTitle = h3.textContent?.trim();
-                const dl = dlElements[index];
-                if (sectionTitle && dl) {
-                    basicInfo[`--- ${sectionTitle} ---`] = '';
-                    const dtElements = dl.querySelectorAll('dt');
-                    const ddElements = dl.querySelectorAll('dd');
-                    dtElements.forEach((dt, dtIndex) => {
-                        const key = dt.textContent?.trim();
-                        const value = ddElements[dtIndex]?.textContent?.trim();
-                        if (key && value) {
-                            basicInfo[key] = value;
-                        }
-                    });
+            const dtElements = profileDetails.querySelectorAll('dt');
+            const ddElements = profileDetails.querySelectorAll('dd');
+            dtElements.forEach((dt, index) => {
+                const key = dt.textContent?.trim();
+                const value = ddElements[index]?.textContent?.trim();
+                if (key && value) {
+                    basicInfo[key] = value;
                 }
             });
         }
