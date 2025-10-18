@@ -9,7 +9,7 @@ const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
 
 // 用户脚本头部 - 针对GreasyFork优化
 const header = `// ==UserScript==
-// @name         With Profile Copy
+// @name         deai prompt generator
 // @namespace    http://tampermonkey.net/
 // @version      ${packageJson.version}
 // @description  with.isとpairs.lvのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します

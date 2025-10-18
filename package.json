@@ -1,7 +1,7 @@
 {
-  "name": "with-profile-copy",
+  "name": "deai-prompt-generator",
   "version": "1.0.3",
-  "description": "Tampermonkey userscript for copying with.is user profiles",
+  "description": "Tampermonkey userscript for generating AI prompts from with.is and Pairs.lv profiles",
   "main": "dist/with-profile-copy.js",
   "scripts": {
     "build": "tsc && node build.js && node build-greasyfork.js",
