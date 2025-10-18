@@ -16,6 +16,10 @@
 "use strict";
 (function () {
     'use strict';
+    const CONFIG = {
+        MESSAGE_DISPLAY_TIME: 3000,
+        PAIRS_MODAL_TIMEOUT: 10000
+    };
     const CSS_SELECTORS = {
         WITH_IS: {
             NICKNAME: '.profile_main-nickname',
@@ -32,7 +36,7 @@
             AGE_LOCATION: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(4) > span',
             MY_TAGS: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(2) > div:nth-child(1) > div > ul > li > a',
             INTRODUCTION: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(2) > div:nth-child(2) > div > p',
-            PROFILE_DETAILS: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(2) > div:nth-child(3) > div > dl',
+            PROFILE_CONTAINER: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(2) > div:nth-child(3) > div',
             BUTTON_INSERT: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(3) > p'
         }
     };
@@ -76,7 +80,7 @@
         setTimeout(() => {
             observer.disconnect();
             console.log('pairs.lv模态框加载超时');
-        }, 10000);
+        }, CONFIG.PAIRS_MODAL_TIMEOUT);
     }
     function tryAddPairsButton() {
         const buttonContainer = document.querySelector(CSS_SELECTORS.PAIRS.BUTTON_INSERT);
@@ -220,17 +224,29 @@
             }
         });
         const basicInfo = {};
-        const profileDetails = document.querySelector(selectors.PROFILE_DETAILS);
-        if (profileDetails) {
-            const dtElements = profileDetails.querySelectorAll('dt');
-            const ddElements = profileDetails.querySelectorAll('dd');
-            dtElements.forEach((dt, index) => {
-                const key = dt.textContent?.trim();
-                const value = ddElements[index]?.textContent?.trim();
-                if (key && value) {
-                    basicInfo[key] = value;
-                }
+        const profileContainer = document.querySelector(CSS_SELECTORS.PAIRS.PROFILE_CONTAINER);
+        if (profileContainer) {
+            console.log('找到プロフィール容器');
+            const allH3Elements = profileContainer.querySelectorAll('h3');
+            console.log('找到的h3元素数量:', allH3Elements.length);
+            const allDlElements = profileContainer.querySelectorAll('dl');
+            console.log('找到的dl元素数量:', allDlElements.length);
+            allDlElements.forEach((dl) => {
+                const dtElements = dl.querySelectorAll('dt');
+                const ddElements = dl.querySelectorAll('dd');
+                dtElements.forEach((dt, index) => {
+                    const key = dt.textContent?.trim();
+                    const value = ddElements[index]?.textContent?.trim();
+                    if (key && value) {
+                        basicInfo[key] = value;
+                    }
+                });
             });
+            console.log('提取的基本信息数量:', Object.keys(basicInfo).length);
+            console.log('提取的键:', Object.keys(basicInfo));
+        }
+        else {
+            console.log('未找到プロフィール容器');
         }
         return {
             nickname,
@@ -251,13 +267,17 @@
                 ? data.myTags.map(tag => `- ${tag}`).join('\n')
                 : 'なし';
             return `pairs.lvで以下ユーザーとマッチしました。相手の情報は以下になります
+
 ユーザー名：${data.nickname}
 年齢：${data.age}
 居住地：${data.location}
+
 自己紹介：
 ${data.introduction}
+
 マイタグ：
 ${myTagsText}
+
 相手の基本情報：
 ${basicInfoText}
 
@@ -268,13 +288,17 @@ ${basicInfoText}
                 ? data.commonPoints.map(point => `- ${point}`).join('\n')
                 : 'なし';
             return `with.isで以下ユーザーとマッチしました。相手の情報は以下になります
+
 ユーザー名：${data.nickname}
 年齢：${data.age}
 居住地：${data.location}
+
 自己紹介文：
 ${data.introduction}
+
 俺との共通点：
 ${commonPointsText}
+
 相手の基本情報：
 ${basicInfoText}
 
@@ -301,6 +325,6 @@ ${basicInfoText}
             if (messageDiv.parentNode) {
                 messageDiv.parentNode.removeChild(messageDiv);
             }
-        }, 3000);
+        }, CONFIG.MESSAGE_DISPLAY_TIME);
     }
 })();

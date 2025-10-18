@@ -36,6 +36,12 @@
 
     type UserData = WithIsUserData | PairsUserData;
 
+    // 配置常量
+    const CONFIG = {
+        MESSAGE_DISPLAY_TIME: 3000, // 消息显示时间（毫秒）
+        PAIRS_MODAL_TIMEOUT: 10000  // pairs.lv模态框等待超时时间（毫秒）
+    };
+
     // CSS 选择器常量 - 便于未来扩展和维护
     const CSS_SELECTORS = {
         WITH_IS: {
@@ -57,8 +63,8 @@
             MY_TAGS: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(2) > div:nth-child(1) > div > ul > li > a',
             // 自我介绍 - 使用新的XPath路径
             INTRODUCTION: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(2) > div:nth-child(2) > div > p',
-            // 个人资料详细信息 - 使用新的XPath路径
-            PROFILE_DETAILS: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(2) > div:nth-child(3) > div > dl',
+            // 个人资料详细信息容器
+            PROFILE_CONTAINER: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(2) > div:nth-child(3) > div',
             // 按钮插入位置（昵称元素本身）
             BUTTON_INSERT: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(3) > p'
         }
@@ -110,11 +116,11 @@
             subtree: true
         });
 
-        // 设置超时，如果10秒内模态框仍未加载，则停止监听
+        // 设置超时，如果指定时间内模态框仍未加载，则停止监听
         setTimeout(() => {
             observer.disconnect();
             console.log('pairs.lv模态框加载超时');
-        }, 10000);
+        }, CONFIG.PAIRS_MODAL_TIMEOUT);
     }
 
     function tryAddPairsButton(): boolean {
@@ -296,18 +302,39 @@
 
         // 基本情報（プロフィール詳細から抽出）
         const basicInfo: Record<string, string> = {};
-        const profileDetails = document.querySelector(selectors.PROFILE_DETAILS);
-        if (profileDetails) {
-            const dtElements = profileDetails.querySelectorAll('dt');
-            const ddElements = profileDetails.querySelectorAll('dd');
 
-            dtElements.forEach((dt: Element, index: number) => {
-                const key = dt.textContent?.trim();
-                const value = ddElements[index]?.textContent?.trim();
-                if (key && value) {
-                    basicInfo[key] = value;
-                }
+        // 使用正确的profile容器选择器
+        const profileContainer = document.querySelector(CSS_SELECTORS.PAIRS.PROFILE_CONTAINER);
+
+        if (profileContainer) {
+            console.log('找到プロフィール容器');
+
+            // 寻找所有h3标题
+            const allH3Elements = profileContainer.querySelectorAll('h3');
+            console.log('找到的h3元素数量:', allH3Elements.length);
+
+            // 寻找所有dl元素
+            const allDlElements = profileContainer.querySelectorAll('dl');
+            console.log('找到的dl元素数量:', allDlElements.length);
+
+            // 直接提取所有dt/dd对
+            allDlElements.forEach((dl: Element) => {
+                const dtElements = dl.querySelectorAll('dt');
+                const ddElements = dl.querySelectorAll('dd');
+
+                dtElements.forEach((dt: Element, index: number) => {
+                    const key = dt.textContent?.trim();
+                    const value = ddElements[index]?.textContent?.trim();
+                    if (key && value) {
+                        basicInfo[key] = value;
+                    }
+                });
             });
+
+            console.log('提取的基本信息数量:', Object.keys(basicInfo).length);
+            console.log('提取的键:', Object.keys(basicInfo));
+        } else {
+            console.log('未找到プロフィール容器');
         }
 
         return {
@@ -333,13 +360,17 @@
                 : 'なし';
 
             return `pairs.lvで以下ユーザーとマッチしました。相手の情報は以下になります
+
 ユーザー名：${data.nickname}
 年齢：${data.age}
 居住地：${data.location}
+
 自己紹介：
 ${data.introduction}
+
 マイタグ：
 ${myTagsText}
+
 相手の基本情報：
 ${basicInfoText}
 
@@ -350,13 +381,17 @@ ${basicInfoText}
                 : 'なし';
 
             return `with.isで以下ユーザーとマッチしました。相手の情報は以下になります
+
 ユーザー名：${data.nickname}
 年齢：${data.age}
 居住地：${data.location}
+
 自己紹介文：
 ${data.introduction}
+
 俺との共通点：
 ${commonPointsText}
+
 相手の基本情報：
 ${basicInfoText}
 
@@ -382,11 +417,11 @@ ${basicInfoText}
 
         document.body.appendChild(messageDiv);
 
-        // 3秒後に自動的に削除
+        // 指定時間後に自動的に削除
         setTimeout(() => {
             if (messageDiv.parentNode) {
                 messageDiv.parentNode.removeChild(messageDiv);
             }
-        }, 3000);
+        }, CONFIG.MESSAGE_DISPLAY_TIME);
     }
 })();
