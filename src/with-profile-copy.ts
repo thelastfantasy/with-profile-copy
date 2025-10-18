@@ -2,9 +2,10 @@
 // @name         With Profile Copy
 // @namespace    http://tampermonkey.net/
 // @version      1.0.2
-// @description  with.isのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します
+// @description  with.isとpairs.lvのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します
 // @author       Your Name
 // @match        https://with.is/users/*
+// @match        https://pairs.lv/message/detail/*
 // @grant        GM_setClipboard
 // @require      https://unpkg.com/typescript@latest/lib/typescript.js
 // ==/UserScript==
@@ -23,10 +24,21 @@
             BASIC_INFO_ROW: 'tr',
             BASIC_INFO_HEADER: 'th',
             BASIC_INFO_DATA: 'td'
+        },
+        PAIRS: {
+            // 昵称
+            NICKNAME: '#dialog-root div[class*="css-1nd3lzo"] p[class*="css-1vpz3jk"]',
+            // 年龄和居住地
+            AGE_LOCATION: '#dialog-root div[class*="css-4mfdeu"] span[class*="css-tdraro"]',
+            // 我的标签
+            MY_TAGS: '#dialog-root div[class*="css-haovvl"] ul[class*="css-18myncx"] li a[class*="css-p2i382"]',
+            // 自我介绍
+            INTRODUCTION: '#dialog-root div[class*="css-1x1bqz1"] p[class*="css-1ryh3zs"]',
+            // 个人资料详细信息
+            PROFILE_DETAILS: '#dialog-root div[class*="css-1yx6rxm"] dl[class*="css-3yiss7"]',
+            // 按钮插入位置
+            BUTTON_INSERT: '#dialog-root div[class*="css-1nd3lzo"] div[class*="css-158u5jq"]'
         }
-        // 未来可以添加其他网站的CSS选择器，例如：
-        // MARRISH: { ... },
-        // PAIRS: { ... }
     };
 
     // ページの読み込み完了を待機
@@ -37,41 +49,62 @@
     }
 
     function init() {
-        // ユーザー詳細ページかどうかを確認
-        if (!window.location.href.includes('/users/')) {
+        // サイトを判定して適切なボタン追加関数を呼び出す
+        if (window.location.href.includes('with.is/users/')) {
+            addCopyButton('WITH_IS');
+        } else if (window.location.href.includes('pairs.lv/message/detail/')) {
+            addCopyButton('PAIRS');
+        } else {
             return;
         }
-
-        // コピーボタンを追加
-        addCopyButton();
     }
 
-    function addCopyButton() {
-        // ユーザー名要素を検索
-        const nicknameElement = document.querySelector(CSS_SELECTORS.WITH_IS.NICKNAME);
-        if (!nicknameElement) {
-            console.log('ユーザー名要素が見つかりません');
+    function addCopyButton(site: 'WITH_IS' | 'PAIRS') {
+        let buttonContainer: Element | null = null;
+        let buttonText = '📋 ユーザー情報をコピー';
+
+        if (site === 'WITH_IS') {
+            // with.is: ユーザー名要素の後ろに追加
+            buttonContainer = document.querySelector(CSS_SELECTORS.WITH_IS.NICKNAME);
+            if (buttonContainer) {
+                buttonContainer = buttonContainer.parentNode as Element;
+            }
+        } else if (site === 'PAIRS') {
+            // pairs.lv: 指定された挿入位置に追加
+            buttonContainer = document.querySelector(CSS_SELECTORS.PAIRS.BUTTON_INSERT);
+            buttonText = '📋 プロフィールをコピー';
+        }
+
+        if (!buttonContainer) {
+            console.log('ボタン追加位置が見つかりません');
             return;
         }
 
+        // 共通のボタン作成関数
+        createCopyButton(buttonContainer, buttonText);
+    }
+
+    function createCopyButton(container: Element, buttonText: string) {
         // コピーボタンを作成
         const copyButton = document.createElement('button');
-        copyButton.textContent = '📋 ユーザー情報をコピー';
+        copyButton.textContent = buttonText;
         copyButton.style.cssText = `
-            margin-left: 10px;
-            padding: 4px 8px;
+            margin: 10px 0;
+            padding: 8px 16px;
             background: #007bff;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            display: block;
         `;
 
         copyButton.addEventListener('click', handleCopy);
 
-        // ボタンをユーザー名の後ろに追加
-        nicknameElement.parentNode?.insertBefore(copyButton, nicknameElement.nextSibling);
+        // ボタンをコンテナに追加
+        container.appendChild(copyButton);
     }
 
     function handleCopy() {
@@ -91,8 +124,28 @@
     }
 
     function extractUserData(): UserData {
-        const selectors = CSS_SELECTORS.WITH_IS;
+        // 現在のサイトを判定
+        let selectors;
+        let site: 'WITH_IS' | 'PAIRS' = 'WITH_IS';
 
+        if (window.location.href.includes('with.is/users/')) {
+            selectors = CSS_SELECTORS.WITH_IS;
+            site = 'WITH_IS';
+        } else if (window.location.href.includes('pairs.lv/message/detail/')) {
+            selectors = CSS_SELECTORS.PAIRS;
+            site = 'PAIRS';
+        } else {
+            throw new Error('サポートされていないサイトです');
+        }
+
+        if (site === 'WITH_IS') {
+            return extractWithIsData(selectors);
+        } else {
+            return extractPairsData(selectors);
+        }
+    }
+
+    function extractWithIsData(selectors: any): UserData {
         // ユーザー名
         const nickname = document.querySelector(selectors.NICKNAME)?.textContent?.trim() || '見つかりません';
 
@@ -104,7 +157,7 @@
         if (ageAddressElement) {
             const text = ageAddressElement.textContent?.trim() || '';
             // 年齢と居住地を分離（形式が "年齢\n居住地" と仮定）
-            const parts = text.split('\n').filter(part => part.trim());
+            const parts = text.split('\n').filter((part: string) => part.trim());
             if (parts.length >= 1) age = parts[0].trim();
             if (parts.length >= 2) location = parts[1].trim();
         }
@@ -129,7 +182,7 @@
         const basicInfoTable = document.querySelector(selectors.BASIC_INFO_TABLE);
         if (basicInfoTable) {
             const rows = basicInfoTable.querySelectorAll(selectors.BASIC_INFO_ROW);
-            rows.forEach(row => {
+            rows.forEach((row: Element) => {
                 const th = row.querySelector(selectors.BASIC_INFO_HEADER)?.textContent?.trim();
                 const td = row.querySelector(selectors.BASIC_INFO_DATA)?.textContent?.trim();
                 if (th && td) {
@@ -144,7 +197,65 @@
             location,
             introduction,
             commonPoints,
-            basicInfo
+            basicInfo,
+            myTags: []
+        };
+    }
+
+    function extractPairsData(selectors: any): UserData {
+        // ユーザー名
+        const nickname = document.querySelector(selectors.NICKNAME)?.textContent?.trim() || '見つかりません';
+
+        // 年齢と居住地
+        const ageLocationElement = document.querySelector(selectors.AGE_LOCATION);
+        let age = '見つかりません';
+        let location = '見つかりません';
+
+        if (ageLocationElement) {
+            const text = ageLocationElement.textContent?.trim() || '';
+            // 年齢と居住地を分離（形式が "28歳 京都" と仮定）
+            const parts = text.split(' ').filter((part: string) => part.trim());
+            if (parts.length >= 1) age = parts[0].trim();
+            if (parts.length >= 2) location = parts.slice(1).join(' ').trim();
+        }
+
+        // 自己紹介
+        const introduction = document.querySelector(selectors.INTRODUCTION)?.textContent?.trim() || '見つかりません';
+
+        // マイタグ
+        const myTags: string[] = [];
+        const myTagElements = document.querySelectorAll(selectors.MY_TAGS);
+        myTagElements.forEach(el => {
+            const title = el.getAttribute('title');
+            if (title) {
+                myTags.push(title);
+            }
+        });
+
+        // 基本情報（プロフィール詳細から抽出）
+        const basicInfo: Record<string, string> = {};
+        const profileDetails = document.querySelector(selectors.PROFILE_DETAILS);
+        if (profileDetails) {
+            const dtElements = profileDetails.querySelectorAll('dt');
+            const ddElements = profileDetails.querySelectorAll('dd');
+
+            dtElements.forEach((dt: Element, index: number) => {
+                const key = dt.textContent?.trim();
+                const value = ddElements[index]?.textContent?.trim();
+                if (key && value) {
+                    basicInfo[key] = value;
+                }
+            });
+        }
+
+        return {
+            nickname,
+            age,
+            location,
+            introduction,
+            commonPoints: [], // pairs.lvでは共通点がない
+            basicInfo,
+            myTags
         };
     }
 
@@ -153,11 +264,32 @@
             ? data.commonPoints.map(point => `- ${point}`).join('\n')
             : 'なし';
 
+        const myTagsText = data.myTags.length > 0
+            ? data.myTags.map(tag => `- ${tag}`).join('\n')
+            : 'なし';
+
         const basicInfoText = Object.entries(data.basicInfo).length > 0
             ? Object.entries(data.basicInfo).map(([key, value]) => `${key}: ${value}`).join('\n')
             : 'なし';
 
-        return `with.isで以下ユーザーとマッチしました。相手の情報は以下になります
+        // サイトに応じたテンプレートを選択
+        const isPairs = window.location.href.includes('pairs.lv');
+
+        if (isPairs) {
+            return `pairs.lvで以下ユーザーとマッチしました。相手の情報は以下になります
+ユーザー名：${data.nickname}
+年齢：${data.age}
+居住地：${data.location}
+自己紹介：
+${data.introduction}
+マイタグ：
+${myTagsText}
+相手の基本情報：
+${basicInfoText}
+
+以上情報常に忘れず、相手と会話で送るメッセージを提案してみてください。`;
+        } else {
+            return `with.isで以下ユーザーとマッチしました。相手の情報は以下になります
 ユーザー名：${data.nickname}
 年齢：${data.age}
 居住地：${data.location}
@@ -169,6 +301,7 @@ ${commonPointsText}
 ${basicInfoText}
 
 以上情報常に忘れず、相手と会話で送るメッセージを提案してみてください。`;
+        }
     }
 
     function showMessage(message: string, type: 'success' | 'error') {
@@ -204,5 +337,6 @@ ${basicInfoText}
         introduction: string;
         commonPoints: string[];
         basicInfo: Record<string, string>;
+        myTags: string[];
     }
 })();
