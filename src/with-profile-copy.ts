@@ -59,8 +59,8 @@
             INTRODUCTION: '#dialog-root div[class*="css-1x1bqz1"] p[class*="css-1ryh3zs"]',
             // 个人资料详细信息
             PROFILE_DETAILS: '#dialog-root div[class*="css-1yx6rxm"] dl[class*="css-3yiss7"]',
-            // 按钮插入位置
-            BUTTON_INSERT: '#dialog-root div[class*="css-1nd3lzo"] div[class*="css-158u5jq"]'
+            // 按钮插入位置（昵称元素本身）
+            BUTTON_INSERT: '#dialog-root div[class*="css-1nd3lzo"] p[class*="css-1vpz3jk"]'
         }
     };
 
@@ -89,9 +89,6 @@
         if (site === 'WITH_IS') {
             // with.is: ユーザー名要素の後ろに追加
             buttonContainer = document.querySelector(CSS_SELECTORS.WITH_IS.NICKNAME);
-            if (buttonContainer) {
-                buttonContainer = buttonContainer.parentNode as Element;
-            }
         } else if (site === 'PAIRS') {
             // pairs.lv: 指定された挿入位置に追加
             buttonContainer = document.querySelector(CSS_SELECTORS.PAIRS.BUTTON_INSERT);
@@ -112,22 +109,20 @@
         const copyButton = document.createElement('button');
         copyButton.textContent = buttonText;
         copyButton.style.cssText = `
-            margin: 10px 0;
-            padding: 8px 16px;
+            margin-left: 10px;
+            padding: 4px 8px;
             background: #007bff;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            display: block;
+            font-size: 12px;
         `;
 
         copyButton.addEventListener('click', handleCopy);
 
-        // ボタンをコンテナに追加
-        container.appendChild(copyButton);
+        // ボタンをコンテナの後ろに追加
+        container.parentNode?.insertBefore(copyButton, container.nextSibling);
     }
 
     function handleCopy() {

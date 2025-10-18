@@ -33,7 +33,7 @@
             MY_TAGS: '#dialog-root div[class*="css-haovvl"] ul[class*="css-18myncx"] li a[class*="css-p2i382"]',
             INTRODUCTION: '#dialog-root div[class*="css-1x1bqz1"] p[class*="css-1ryh3zs"]',
             PROFILE_DETAILS: '#dialog-root div[class*="css-1yx6rxm"] dl[class*="css-3yiss7"]',
-            BUTTON_INSERT: '#dialog-root div[class*="css-1nd3lzo"] div[class*="css-158u5jq"]'
+            BUTTON_INSERT: '#dialog-root div[class*="css-1nd3lzo"] p[class*="css-1vpz3jk"]'
         }
     };
     if (document.readyState === 'loading') {
@@ -58,9 +58,6 @@
         let buttonText = '📋 ユーザー情報をコピー';
         if (site === 'WITH_IS') {
             buttonContainer = document.querySelector(CSS_SELECTORS.WITH_IS.NICKNAME);
-            if (buttonContainer) {
-                buttonContainer = buttonContainer.parentNode;
-            }
         }
         else if (site === 'PAIRS') {
             buttonContainer = document.querySelector(CSS_SELECTORS.PAIRS.BUTTON_INSERT);
@@ -76,19 +73,17 @@
         const copyButton = document.createElement('button');
         copyButton.textContent = buttonText;
         copyButton.style.cssText = `
-            margin: 10px 0;
-            padding: 8px 16px;
+            margin-left: 10px;
+            padding: 4px 8px;
             background: #007bff;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            display: block;
+            font-size: 12px;
         `;
         copyButton.addEventListener('click', handleCopy);
-        container.appendChild(copyButton);
+        container.parentNode?.insertBefore(copyButton, container.nextSibling);
     }
     function handleCopy() {
         try {
