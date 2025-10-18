@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         With Profile Copy
+// @name         deai prompt generator
 // @namespace    http://tampermonkey.net/
 // @version      1.0.3
 // @description  with.isとpairs.lvのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します
@@ -9,8 +9,8 @@
 // @grant        GM_setClipboard
 // @license      MIT
 // @supportURL   https://github.com/thelastfantasy/with-profile-copy/issues
-// @updateURL    https://github.com/thelastfantasy/with-profile-copy/raw/main/script.user.js
-// @downloadURL  https://github.com/thelastfantasy/with-profile-copy/raw/main/script.user.js
+// @updateURL    https://github.com/thelastfantasy/with-profile-copy/raw/dist/script.user.js
+// @downloadURL  https://github.com/thelastfantasy/with-profile-copy/raw/dist/script.user.js
 // ==/UserScript==
 
 "use strict";
