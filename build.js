@@ -8,12 +8,16 @@ const jsContent = fs.readFileSync('./dist/with-profile-copy.js', 'utf8');
 const header = `// ==UserScript==
 // @name         With Profile Copy
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  在with.is用户页面添加复制按钮，用于生成AI对话提示
+// @version      1.0.3
+// @description  with.isとpairs.lvのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します
 // @author       Your Name
 // @match        https://with.is/users/*
+// @match        https://pairs.lv/message/detail/*
 // @grant        GM_setClipboard
 // @license      MIT
+// @supportURL   https://github.com/thelastfantasy/with-profile-copy/issues
+// @updateURL    https://github.com/thelastfantasy/with-profile-copy/raw/main/script.user.js
+// @downloadURL  https://github.com/thelastfantasy/with-profile-copy/raw/main/script.user.js
 // ==/UserScript==
 
 `;

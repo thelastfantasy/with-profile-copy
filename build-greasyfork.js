@@ -12,9 +12,10 @@ const header = `// ==UserScript==
 // @name         With Profile Copy
 // @namespace    http://tampermonkey.net/
 // @version      ${packageJson.version}
-// @description  with.isのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します
+// @description  with.isとpairs.lvのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します
 // @author       Your Name
 // @match        https://with.is/users/*
+// @match        https://pairs.lv/message/detail/*
 // @grant        GM_setClipboard
 // @license      MIT
 // @supportURL   https://github.com/thelastfantasy/with-profile-copy/issues
