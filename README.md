@@ -1,4 +1,4 @@
-# With Profile Copy
+# deai prompt generator
 
 [with.is](https://with.is) と [Pairs.lv](https://pairs.lv) 向けの Tampermonkey ユーザースクリプト。ユーザー詳細ページにコピーボタンを追加し、AI対話プロンプトを素早く生成します。
 
@@ -24,11 +24,16 @@
 
 ## インストール
 
-### 方法1：直接インストール
+### 方法1：GreasyForkからインストール（推奨）
+1. [Tampermonkey](https://www.tampermonkey.net/) ブラウザ拡張機能をインストール
+2. [GreasyForkページ](https://greasyfork.org/scripts/552862-with-profile-copy) にアクセス
+3. "Install this script" ボタンをクリック
+
+### 方法2：GitHubから直接インストール
 1. [Tampermonkey](https://www.tampermonkey.net/) ブラウザ拡張機能をインストール
 2. [ここをクリック](https://github.com/thelastfantasy/with-profile-copy/releases/latest/download/with-profile-copy.user.js) して最新版をインストール
 
-### 方法2：手動インストール
+### 方法3：手動インストール
 1. `dist/with-profile-copy.user.js` ファイルの内容をコピー
 2. Tampermonkey で「新規スクリプトを追加」をクリック
 3. 内容を貼り付けて保存

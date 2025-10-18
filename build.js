@@ -6,7 +6,7 @@ const jsContent = fs.readFileSync('./dist/with-profile-copy.js', 'utf8');
 
 // 用户脚本头部
 const header = `// ==UserScript==
-// @name         With Profile Copy
+// @name         deai prompt generator
 // @namespace    http://tampermonkey.net/
 // @version      1.0.3
 // @description  with.isとpairs.lvのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します
