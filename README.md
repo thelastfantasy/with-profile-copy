@@ -31,7 +31,7 @@
 
 ### 方法2：GitHubから直接インストール
 1. [Tampermonkey](https://www.tampermonkey.net/) ブラウザ拡張機能をインストール
-2. [ここをクリック](https://github.com/thelastfantasy/with-profile-copy/releases/latest/download/with-profile-copy.user.js) して最新版をインストール
+2. [ここをクリック](https://github.com/thelastfantasy/with-profile-copy/raw/dist/script.user.js) して最新版をインストール
 
 ### 方法3：手動インストール
 1. `dist/with-profile-copy.user.js` ファイルの内容をコピー
