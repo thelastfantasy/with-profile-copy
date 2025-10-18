@@ -71,5 +71,6 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 1. **始终使用标准分支前缀**
 2. **遵循GitHub Flow工作流程**
 3. **main分支受保护，必须通过PR合并**
-4. **确保script.user.js在main分支上总是最新的**
-5. **GreasyFork从main分支的script.user.js导入**
+4. **合并PR时总是删除分支**
+5. **GitHub origin只保留main和dist分支**
+6. **GreasyFork从dist分支的script.user.js导入**
