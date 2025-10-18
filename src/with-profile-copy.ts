@@ -49,18 +49,18 @@
             BASIC_INFO_DATA: 'td'
         },
         PAIRS: {
-            // 昵称 - 使用层级定位
-            NICKNAME: '#dialog-root > div > div > div > div > div > div > div > div > div > div > div > p',
-            // 年龄和居住地 - 使用层级定位
-            AGE_LOCATION: '#dialog-root > div > div > div > div > div > div > div > div > div > div > div + div > span',
+            // 昵称 - 使用XPath精确层级定位
+            NICKNAME: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(3) > p',
+            // 年龄和居住地 - 使用XPath精确层级定位
+            AGE_LOCATION: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(4) > span',
             // 我的标签 - 使用层级定位
-            MY_TAGS: '#dialog-root > div > div > div > div > div > div > div + div > div > div > ul > li > a',
+            MY_TAGS: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(4) > div > div > ul > li > a',
             // 自我介绍 - 使用层级定位
-            INTRODUCTION: '#dialog-root > div > div > div > div > div > div > div + div > div > div + div > p',
+            INTRODUCTION: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(4) > div > div:nth-child(2) > p',
             // 个人资料详细信息 - 使用层级定位
-            PROFILE_DETAILS: '#dialog-root > div > div > div > div > div > div > div + div > div > div + div + div > dl',
+            PROFILE_DETAILS: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(4) > div > div:nth-child(3) > dl',
             // 按钮插入位置（昵称元素本身）
-            BUTTON_INSERT: '#dialog-root > div > div > div > div > div > div > div > div > div > div > div > p'
+            BUTTON_INSERT: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(3) > p'
         }
     };
 
