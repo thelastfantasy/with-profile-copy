@@ -13,6 +13,29 @@
 (function() {
     'use strict';
 
+    // 类型定义
+    type WithIsUserData = {
+        nickname: string;
+        age: string;
+        location: string;
+        introduction: string;
+        commonPoints: string[];
+        basicInfo: Record<string, string>;
+        site: 'WITH_IS';
+    };
+
+    type PairsUserData = {
+        nickname: string;
+        age: string;
+        location: string;
+        introduction: string;
+        myTags: string[];
+        basicInfo: Record<string, string>;
+        site: 'PAIRS';
+    };
+
+    type UserData = WithIsUserData | PairsUserData;
+
     // CSS 选择器常量 - 便于未来扩展和维护
     const CSS_SELECTORS = {
         WITH_IS: {
@@ -198,7 +221,7 @@
             introduction,
             commonPoints,
             basicInfo,
-            myTags: []
+            site: 'WITH_IS' as const
         };
     }
 
@@ -253,29 +276,23 @@
             age,
             location,
             introduction,
-            commonPoints: [], // pairs.lvでは共通点がない
+            myTags,
             basicInfo,
-            myTags
+            site: 'PAIRS' as const
         };
     }
 
     function generatePrompt(data: UserData): string {
-        const commonPointsText = data.commonPoints.length > 0
-            ? data.commonPoints.map(point => `- ${point}`).join('\n')
-            : 'なし';
-
-        const myTagsText = data.myTags.length > 0
-            ? data.myTags.map(tag => `- ${tag}`).join('\n')
-            : 'なし';
-
         const basicInfoText = Object.entries(data.basicInfo).length > 0
             ? Object.entries(data.basicInfo).map(([key, value]) => `${key}: ${value}`).join('\n')
             : 'なし';
 
         // サイトに応じたテンプレートを選択
-        const isPairs = window.location.href.includes('pairs.lv');
+        if (data.site === 'PAIRS') {
+            const myTagsText = data.myTags.length > 0
+                ? data.myTags.map(tag => `- ${tag}`).join('\n')
+                : 'なし';
 
-        if (isPairs) {
             return `pairs.lvで以下ユーザーとマッチしました。相手の情報は以下になります
 ユーザー名：${data.nickname}
 年齢：${data.age}
@@ -289,6 +306,10 @@ ${basicInfoText}
 
 以上情報常に忘れず、相手と会話で送るメッセージを提案してみてください。`;
         } else {
+            const commonPointsText = data.commonPoints.length > 0
+                ? data.commonPoints.map(point => `- ${point}`).join('\n')
+                : 'なし';
+
             return `with.isで以下ユーザーとマッチしました。相手の情報は以下になります
 ユーザー名：${data.nickname}
 年齢：${data.age}
@@ -328,15 +349,5 @@ ${basicInfoText}
                 messageDiv.parentNode.removeChild(messageDiv);
             }
         }, 3000);
-    }
-
-    interface UserData {
-        nickname: string;
-        age: string;
-        location: string;
-        introduction: string;
-        commonPoints: string[];
-        basicInfo: Record<string, string>;
-        myTags: string[];
     }
 })();

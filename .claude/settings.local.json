@@ -19,7 +19,8 @@
       "Bash(gh pr merge:*)",
       "Bash(git pull:*)",
       "Bash(gh pr view:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Add Pairs.lv support\n\n- Add Pairs.lv URL matching and CSS selectors\n- Create common button creation function for both sites\n- Implement Pairs.lv profile data extraction logic\n- Update template for Pairs.lv specific formatting\n- Update version to 1.0.3\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

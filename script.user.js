@@ -166,7 +166,7 @@
             introduction,
             commonPoints,
             basicInfo,
-            myTags: []
+            site: 'WITH_IS'
         };
     }
     function extractPairsData(selectors) {
@@ -209,23 +209,19 @@
             age,
             location,
             introduction,
-            commonPoints: [],
+            myTags,
             basicInfo,
-            myTags
+            site: 'PAIRS'
         };
     }
     function generatePrompt(data) {
-        const commonPointsText = data.commonPoints.length > 0
-            ? data.commonPoints.map(point => `- ${point}`).join('\n')
-            : 'なし';
-        const myTagsText = data.myTags.length > 0
-            ? data.myTags.map(tag => `- ${tag}`).join('\n')
-            : 'なし';
         const basicInfoText = Object.entries(data.basicInfo).length > 0
             ? Object.entries(data.basicInfo).map(([key, value]) => `${key}: ${value}`).join('\n')
             : 'なし';
-        const isPairs = window.location.href.includes('pairs.lv');
-        if (isPairs) {
+        if (data.site === 'PAIRS') {
+            const myTagsText = data.myTags.length > 0
+                ? data.myTags.map(tag => `- ${tag}`).join('\n')
+                : 'なし';
             return `pairs.lvで以下ユーザーとマッチしました。相手の情報は以下になります
 ユーザー名：${data.nickname}
 年齢：${data.age}
@@ -240,6 +236,9 @@ ${basicInfoText}
 以上情報常に忘れず、相手と会話で送るメッセージを提案してみてください。`;
         }
         else {
+            const commonPointsText = data.commonPoints.length > 0
+                ? data.commonPoints.map(point => `- ${point}`).join('\n')
+                : 'なし';
             return `with.isで以下ユーザーとマッチしました。相手の情報は以下になります
 ユーザー名：${data.nickname}
 年齢：${data.age}
