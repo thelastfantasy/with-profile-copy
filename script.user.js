@@ -47,11 +47,44 @@
             addCopyButton('WITH_IS');
         }
         else if (window.location.href.includes('pairs.lv/message/detail/')) {
-            addCopyButton('PAIRS');
+            waitForPairsModal();
         }
         else {
             return;
         }
+    }
+    function waitForPairsModal() {
+        console.log('等待pairs.lv模态框加载...');
+        if (tryAddPairsButton()) {
+            return;
+        }
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'childList') {
+                    if (tryAddPairsButton()) {
+                        observer.disconnect();
+                        console.log('pairs.lv模态框已加载，按钮已添加');
+                        return;
+                    }
+                }
+            }
+        });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        setTimeout(() => {
+            observer.disconnect();
+            console.log('pairs.lv模态框加载超时');
+        }, 10000);
+    }
+    function tryAddPairsButton() {
+        const buttonContainer = document.querySelector(CSS_SELECTORS.PAIRS.BUTTON_INSERT);
+        if (buttonContainer) {
+            addCopyButton('PAIRS');
+            return true;
+        }
+        return false;
     }
     function addCopyButton(site) {
         let buttonContainer = null;
