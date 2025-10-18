@@ -28,12 +28,12 @@
             BASIC_INFO_DATA: 'td'
         },
         PAIRS: {
-            NICKNAME: '#dialog-root div[class*="css-1nd3lzo"] p[class*="css-1vpz3jk"]',
-            AGE_LOCATION: '#dialog-root div[class*="css-4mfdeu"] span[class*="css-tdraro"]',
-            MY_TAGS: '#dialog-root div[class*="css-haovvl"] ul[class*="css-18myncx"] li a[class*="css-p2i382"]',
-            INTRODUCTION: '#dialog-root div[class*="css-1x1bqz1"] p[class*="css-1ryh3zs"]',
-            PROFILE_DETAILS: '#dialog-root div[class*="css-1yx6rxm"] dl[class*="css-3yiss7"]',
-            BUTTON_INSERT: '#dialog-root div[class*="css-1nd3lzo"] p[class*="css-1vpz3jk"]'
+            NICKNAME: '#dialog-root > div > div > div > div > div > div > div > div > div > div > div > p',
+            AGE_LOCATION: '#dialog-root > div > div > div > div > div > div > div > div > div > div > div + div > span',
+            MY_TAGS: '#dialog-root > div > div > div > div > div > div > div + div > div > div > ul > li > a',
+            INTRODUCTION: '#dialog-root > div > div > div > div > div > div > div + div > div > div + div > p',
+            PROFILE_DETAILS: '#dialog-root > div > div > div > div > div > div > div + div > div > div + div + div > dl',
+            BUTTON_INSERT: '#dialog-root > div > div > div > div > div > div > div > div > div > div > div > p'
         }
     };
     if (document.readyState === 'loading') {
@@ -64,7 +64,7 @@
             buttonText = '📋 プロフィールをコピー';
         }
         if (!buttonContainer) {
-            console.log('ボタン追加位置が見つかりません');
+            console.log('ボタン追加位置が見つかりません:', site, 'selector:', site === 'WITH_IS' ? CSS_SELECTORS.WITH_IS.NICKNAME : CSS_SELECTORS.PAIRS.BUTTON_INSERT);
             return;
         }
         createCopyButton(buttonContainer, buttonText);

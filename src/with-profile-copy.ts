@@ -49,18 +49,18 @@
             BASIC_INFO_DATA: 'td'
         },
         PAIRS: {
-            // 昵称
-            NICKNAME: '#dialog-root div[class*="css-1nd3lzo"] p[class*="css-1vpz3jk"]',
-            // 年龄和居住地
-            AGE_LOCATION: '#dialog-root div[class*="css-4mfdeu"] span[class*="css-tdraro"]',
-            // 我的标签
-            MY_TAGS: '#dialog-root div[class*="css-haovvl"] ul[class*="css-18myncx"] li a[class*="css-p2i382"]',
-            // 自我介绍
-            INTRODUCTION: '#dialog-root div[class*="css-1x1bqz1"] p[class*="css-1ryh3zs"]',
-            // 个人资料详细信息
-            PROFILE_DETAILS: '#dialog-root div[class*="css-1yx6rxm"] dl[class*="css-3yiss7"]',
+            // 昵称 - 使用层级定位
+            NICKNAME: '#dialog-root > div > div > div > div > div > div > div > div > div > div > div > p',
+            // 年龄和居住地 - 使用层级定位
+            AGE_LOCATION: '#dialog-root > div > div > div > div > div > div > div > div > div > div > div + div > span',
+            // 我的标签 - 使用层级定位
+            MY_TAGS: '#dialog-root > div > div > div > div > div > div > div + div > div > div > ul > li > a',
+            // 自我介绍 - 使用层级定位
+            INTRODUCTION: '#dialog-root > div > div > div > div > div > div > div + div > div > div + div > p',
+            // 个人资料详细信息 - 使用层级定位
+            PROFILE_DETAILS: '#dialog-root > div > div > div > div > div > div > div + div > div > div + div + div > dl',
             // 按钮插入位置（昵称元素本身）
-            BUTTON_INSERT: '#dialog-root div[class*="css-1nd3lzo"] p[class*="css-1vpz3jk"]'
+            BUTTON_INSERT: '#dialog-root > div > div > div > div > div > div > div > div > div > div > div > p'
         }
     };
 
@@ -96,7 +96,7 @@
         }
 
         if (!buttonContainer) {
-            console.log('ボタン追加位置が見つかりません');
+            console.log('ボタン追加位置が見つかりません:', site, 'selector:', site === 'WITH_IS' ? CSS_SELECTORS.WITH_IS.NICKNAME : CSS_SELECTORS.PAIRS.BUTTON_INSERT);
             return;
         }
 
