@@ -252,6 +252,7 @@
         console.log('等待marrish.com聊天消息加载...');
 
         if (tryAddMessageButtons()) {
+            addCopyAllChatButton();
             return;
         }
 
@@ -260,6 +261,7 @@
                 if (mutation.type === 'childList') {
                     if (tryAddMessageButtons()) {
                         console.log('marrish.com聊天消息已加载，按钮已添加');
+                        addCopyAllChatButton();
                     }
                 }
             }
@@ -362,6 +364,90 @@
         } catch (error) {
             console.error('メッセージコピーに失敗しました:', error);
             showMessage('❌ コピーに失敗しました', 'error');
+        }
+    }
+
+    function addCopyAllChatButton() {
+        // 查找"既読機能OFF"按钮
+        const readUnreadButton = document.getElementById('read_unread_func_off');
+        if (!readUnreadButton) {
+            console.log('既読機能OFF按钮が見つかりません');
+            return;
+        }
+
+        // 检查是否已经添加过按钮
+        if (readUnreadButton.parentNode?.querySelector('.copy-all-chat-button')) {
+            return;
+        }
+
+        // 创建复制全部聊天记录按钮
+        const copyAllButton = document.createElement('button');
+        copyAllButton.textContent = '📋 チャット履歴をコピー';
+        copyAllButton.className = 'copy-all-chat-button';
+        copyAllButton.style.cssText = `
+            margin-right: 10px;
+            padding: 6px 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        `;
+
+        copyAllButton.addEventListener('click', copyAllChatHistory);
+
+        // 在"既読機能OFF"按钮的左边插入
+        readUnreadButton.parentNode?.insertBefore(copyAllButton, readUnreadButton);
+    }
+
+    function copyAllChatHistory() {
+        try {
+            // 获取所有消息气泡
+            const messageBubbles = document.querySelectorAll(CSS_SELECTORS.MARRISH.MESSAGE_BUBBLE);
+            if (messageBubbles.length === 0) {
+                showMessage('❌ チャット履歴が見つかりません', 'error');
+                return;
+            }
+
+            // 获取对方名称
+            const speakerNameElement = document.querySelector(CSS_SELECTORS.MARRISH.SPEAKER_NAME);
+            const speakerName = speakerNameElement?.textContent?.trim() || '相手';
+
+            // 收集所有消息
+            const messages: string[] = [];
+            messages.push('チャット履歴');
+
+            messageBubbles.forEach(bubble => {
+                const messageContent = bubble.querySelector(CSS_SELECTORS.MARRISH.MESSAGE_CONTENT);
+                if (messageContent) {
+                    // 获取HTML内容并清理格式
+                    const htmlContent = messageContent.innerHTML;
+                    const textContent = htmlContent
+                        .replace(/<br\s*\/?>/gi, '\n')
+                        .replace(/<[^>]*>/g, '')
+                        .replace(/\n{3,}/g, '\n\n')
+                        .trim();
+
+                    // 判断发言人是自己还是对方
+                    const isMyMessage = bubble.classList.contains('yi-message-form-text-body-bg1-me');
+                    const speakerPrefix = isMyMessage ? '俺' : speakerName;
+
+                    messages.push(`${speakerPrefix}：`);
+                    messages.push(textContent);
+                    messages.push(''); // 空行分隔
+                }
+            });
+
+            // 合并所有消息
+            const fullChatHistory = messages.join('\n').trim();
+
+            // 复制到剪贴板
+            GM_setClipboard(fullChatHistory, 'text');
+            showMessage('✅ チャット履歴をコピーしました！', 'success');
+        } catch (error) {
+            console.error('チャット履歴コピーに失敗しました:', error);
+            showMessage('❌ チャット履歴のコピーに失敗しました', 'error');
         }
     }
 
