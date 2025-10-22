@@ -1,7 +1,7 @@
 {
   "name": "deai-prompt-generator",
-  "version": "1.0.3",
-  "description": "Tampermonkey userscript for generating AI prompts from with.is and Pairs.lv profiles",
+  "version": "1.0.4",
+  "description": "Tampermonkey userscript for generating AI prompts from with.is, Pairs.lv and marrish.com profiles",
   "main": "dist/with-profile-copy.js",
   "scripts": {
     "build": "tsc && node build.js && node build-greasyfork.js",
