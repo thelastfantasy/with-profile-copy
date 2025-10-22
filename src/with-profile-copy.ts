@@ -762,7 +762,14 @@
             throw new Error(`未知的网站类型: ${data.site}`);
         }
 
-        const basicInfoText = formatBasicInfo(data.basicInfo);
+        // 根据网站类型选择正确的格式化函数
+        let basicInfoText: string;
+        if (data.site === 'MARRISH') {
+            basicInfoText = formatMarrishBasicInfo(data.basicInfo as Record<string, { value: string; group: string }>);
+        } else {
+            basicInfoText = formatBasicInfo(data.basicInfo);
+        }
+
         const additionalText = formatAdditionalData(data);
 
         return buildPrompt(template, data, basicInfoText, additionalText);
@@ -773,9 +780,20 @@
             return 'なし';
         }
 
-        // 按分组组织数据
+        // 简单的键值对格式（with.is和pairs.lv使用）
+        return Object.entries(basicInfo)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join('\n');
+    }
+
+    function formatMarrishBasicInfo(basicInfo: Record<string, { value: string; group: string }>): string {
+        if (Object.entries(basicInfo).length === 0) {
+            return 'なし';
+        }
+
+        // marrish.com格式：按分组组织数据
         const groupedData: Record<string, Array<{ key: string; value: string }>> = {};
-        Object.entries(basicInfo).forEach(([key, data]: [string, any]) => {
+        Object.entries(basicInfo).forEach(([key, data]) => {
             const group = data.group;
             if (!groupedData[group]) {
                 groupedData[group] = [];
