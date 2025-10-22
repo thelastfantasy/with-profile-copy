@@ -12,10 +12,12 @@ const header = `// ==UserScript==
 // @name         deai prompt generator
 // @namespace    http://tampermonkey.net/
 // @version      ${packageJson.version}
-// @description  with.isとpairs.lvのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します
+// @description  with.isとpairs.lvとmarrish.comのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します。marrish.comのチャットページでメッセージをコピーできます。
 // @author       Your Name
 // @match        https://with.is/users/*
 // @match        https://pairs.lv/message/detail/*
+// @match        https://marrish.com/profile/detail/partner/*
+// @match        https://marrish.com/message/index/*
 // @grant        GM_setClipboard
 // @license      MIT
 // @supportURL   https://github.com/thelastfantasy/with-profile-copy/issues
