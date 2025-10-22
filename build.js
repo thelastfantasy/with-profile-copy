@@ -8,7 +8,7 @@ const jsContent = fs.readFileSync('./dist/with-profile-copy.js', 'utf8');
 const header = `// ==UserScript==
 // @name         deai prompt generator
 // @namespace    http://tampermonkey.net/
-// @version      1.2.0
+// @version      1.0.4
 // @description  with.isとpairs.lvとmarrish.comのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します。marrish.comのチャットページでメッセージをコピーできます。
 // @author       Your Name
 // @match        https://with.is/users/*
