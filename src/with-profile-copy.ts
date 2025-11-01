@@ -602,7 +602,7 @@
     }
 
     function extractPairsData(selectors: any): UserData {
-        // ユーザー名
+        // ユーザー名 - 使用更稳定的选择器
         const nickname = document.querySelector(selectors.NICKNAME)?.textContent?.trim() || '見つかりません';
 
         // 年齢と居住地
@@ -618,27 +618,42 @@
             if (parts.length >= 2) location = parts.slice(1).join(' ').trim();
         }
 
-        // 自己紹介
-        const introduction = document.querySelector(selectors.INTRODUCTION)?.textContent?.trim() || '見つかりません';
-
-        // マイタグ
-        const myTags: string[] = [];
-        const myTagElements = document.querySelectorAll(selectors.MY_TAGS);
-        myTagElements.forEach(el => {
-            const title = el.getAttribute('title');
-            if (title) {
-                myTags.push(title);
+        // 自己紹介 - 使用文本查找策略
+        let introduction = '見つかりません';
+        const introH2 = Array.from(document.querySelectorAll('h2')).find(h2 =>
+            h2.textContent?.includes('自己紹介')
+        );
+        if (introH2?.nextElementSibling) {
+            const introP = introH2.nextElementSibling.querySelector('p');
+            if (introP) {
+                introduction = introP.textContent?.trim() || '見つかりません';
             }
-        });
+        }
+
+        // マイタグ - 使用文本查找策略
+        const myTags: string[] = [];
+        const tagsH2 = Array.from(document.querySelectorAll('h2')).find(h2 =>
+            h2.textContent?.includes('マイタグ')
+        );
+        if (tagsH2?.nextElementSibling) {
+            const tagLinks = tagsH2.nextElementSibling.querySelectorAll('ul > li > a');
+            tagLinks.forEach(a => {
+                const title = a.getAttribute('title');
+                if (title) myTags.push(title);
+            });
+        }
 
         // 基本情報（プロフィール詳細から抽出）
         const basicInfo: Record<string, string> = {};
 
-        // 使用正确的profile容器选择器
-        const profileContainer = document.querySelector(CSS_SELECTORS.PAIRS.PROFILE_CONTAINER);
+        // 使用文本查找策略查找プロフィール容器
+        const profileH2 = Array.from(document.querySelectorAll('h2')).find(h2 =>
+            h2.textContent?.includes('プロフィール')
+        );
 
-        if (profileContainer) {
+        if (profileH2?.nextElementSibling) {
             console.log('找到プロフィール容器');
+            const profileContainer = profileH2.nextElementSibling;
 
             // 寻找所有h3标题
             const allH3Elements = profileContainer.querySelectorAll('h3');
