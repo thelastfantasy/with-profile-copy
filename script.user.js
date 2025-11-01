@@ -476,10 +476,17 @@
         }
         let introduction = '見つかりません';
         const introH2 = Array.from(document.querySelectorAll('h2')).find(h2 => h2.textContent?.includes('自己紹介'));
-        if (introH2?.nextElementSibling) {
-            const introP = introH2.nextElementSibling.querySelector('p');
-            if (introP) {
-                introduction = introP.textContent?.trim() || '見つかりません';
+        console.log('自己紹介h2找到:', !!introH2);
+        if (introH2) {
+            let currentElement = introH2.nextElementSibling;
+            while (currentElement) {
+                const introP = currentElement.querySelector('p');
+                if (introP && introP.textContent?.trim()) {
+                    introduction = introP.textContent.trim();
+                    console.log('找到自己紹介内容');
+                    break;
+                }
+                currentElement = currentElement.nextElementSibling;
             }
         }
         const myTags = [];
@@ -494,26 +501,31 @@
         }
         const basicInfo = {};
         const profileH2 = Array.from(document.querySelectorAll('h2')).find(h2 => h2.textContent?.includes('プロフィール'));
-        if (profileH2?.nextElementSibling) {
-            console.log('找到プロフィール容器');
-            const profileContainer = profileH2.nextElementSibling;
-            const allH3Elements = profileContainer.querySelectorAll('h3');
-            console.log('找到的h3元素数量:', allH3Elements.length);
-            const allDlElements = profileContainer.querySelectorAll('dl');
-            console.log('找到的dl元素数量:', allDlElements.length);
-            allDlElements.forEach((dl) => {
-                const dtElements = dl.querySelectorAll('dt');
-                const ddElements = dl.querySelectorAll('dd');
-                dtElements.forEach((dt, index) => {
-                    const key = dt.textContent?.trim();
-                    const value = ddElements[index]?.textContent?.trim();
-                    if (key && value) {
-                        basicInfo[key] = value;
-                    }
-                });
-            });
-            console.log('提取的基本信息数量:', Object.keys(basicInfo).length);
-            console.log('提取的键:', Object.keys(basicInfo));
+        console.log('プロフィールh2找到:', !!profileH2);
+        if (profileH2) {
+            let profileContainer = profileH2.nextElementSibling;
+            while (profileContainer) {
+                const allDlElements = profileContainer.querySelectorAll('dl');
+                console.log('找到的dl元素数量:', allDlElements.length);
+                if (allDlElements.length > 0) {
+                    console.log('找到プロフィール容器');
+                    allDlElements.forEach((dl) => {
+                        const dtElements = dl.querySelectorAll('dt');
+                        const ddElements = dl.querySelectorAll('dd');
+                        dtElements.forEach((dt, index) => {
+                            const key = dt.textContent?.trim();
+                            const value = ddElements[index]?.textContent?.trim();
+                            if (key && value) {
+                                basicInfo[key] = value;
+                            }
+                        });
+                    });
+                    console.log('提取的基本信息数量:', Object.keys(basicInfo).length);
+                    console.log('提取的键:', Object.keys(basicInfo));
+                    break;
+                }
+                profileContainer = profileContainer.nextElementSibling;
+            }
         }
         else {
             console.log('未找到プロフィール容器');
