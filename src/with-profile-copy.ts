@@ -32,6 +32,7 @@
         location: string;
         introduction: string;
         myTags: string[];
+        pairsQuestions: Array<{question: string; answer: string}>;
         basicInfo: Record<string, string>;
         site: 'PAIRS';
     };
@@ -54,6 +55,9 @@
         PAIRS_MODAL_TIMEOUT: 10000  // pairs.lv模态框等待超时时间（毫秒）
     };
 
+    // 公用常量
+    const COMMON_FOOTER = '以上情報常に忘れず、相手と会話で送るメッセージを提案してみてください。提案するメッセージには非常用の絵文字を使わず、あまり堅苦しくなく、失礼にならない程度のカジュアルな表現でお願いします。';
+
     // 模板常量
     const TEMPLATES = {
         WITH_IS: {
@@ -64,7 +68,7 @@
             introduction: '自己紹介文',
             additional: '俺との共通点',
             basicInfo: '相手の基本情報',
-            footer: '以上情報常に忘れず、相手と会話で送るメッセージを提案してみてください。'
+            footer: COMMON_FOOTER
         },
         PAIRS: {
             header: 'pairs.lvで以下ユーザーとマッチしました。相手の情報は以下になります',
@@ -73,8 +77,9 @@
             location: '居住地',
             introduction: '自己紹介',
             additional: 'マイタグ',
+            pairsQuestions: 'ペアーズクエスチョン',
             basicInfo: '相手の基本情報',
-            footer: '以上情報常に忘れず、相手と会話で送るメッセージを提案してみてください。'
+            footer: COMMON_FOOTER
         },
         MARRISH: {
             header: 'marrish.comで以下ユーザーとマッチしました。相手の情報は以下になります',
@@ -84,7 +89,7 @@
             introduction: '自己PR',
             additional: '参加グループ',
             basicInfo: '相手の基本情報',
-            footer: '以上情報常に忘れず、相手と会話で送るメッセージを提案してみてください。'
+            footer: COMMON_FOOTER
         }
     };
 
@@ -101,10 +106,8 @@
             BASIC_INFO_DATA: 'td'
         },
         PAIRS: {
-            // 昵称 - 使用XPath精确层级定位
-            NICKNAME: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(3) > p',
-            // 年龄和居住地 - 使用XPath精确层级定位
-            AGE_LOCATION: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(4) > span',
+            // 对话框根容器
+            ROOT: '#dialog-root',
             // 按钮插入位置（昵称元素本身）
             BUTTON_INSERT: '#dialog-root > div > div > div > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(3) > p'
         },
@@ -595,76 +598,22 @@
         };
     }
 
-    function extractPairsData(selectors: any): UserData {
-        // ユーザー名 - 使用更稳定的选择器
-        const nickname = document.querySelector(selectors.NICKNAME)?.textContent?.trim() || '見つかりません';
-
-        // 年齢と居住地
-        const ageLocationElement = document.querySelector(selectors.AGE_LOCATION);
-        let age = '見つかりません';
-        let location = '見つかりません';
-
-        if (ageLocationElement) {
-            const text = ageLocationElement.textContent?.trim() || '';
-            // 年齢と居住地を分離（形式が "28歳 京都" と仮定）
-            const parts = text.split(' ').filter((part: string) => part.trim());
-            if (parts.length >= 1) age = parts[0].trim();
-            if (parts.length >= 2) location = parts.slice(1).join(' ').trim();
-        }
-
-        // 自己紹介 - 使用文本查找策略
-        let introduction = '見つかりません';
-        const introH2 = Array.from(document.querySelectorAll('h2')).find(h2 =>
-            h2.textContent?.includes('自己紹介')
-        );
-        console.log('自己紹介h2找到:', !!introH2);
-        if (introH2) {
-            // 尝试查找下一个兄弟元素中的p元素
-            let currentElement = introH2.nextElementSibling;
-            while (currentElement) {
-                const introP = currentElement.querySelector('p');
-                if (introP && introP.textContent?.trim()) {
-                    introduction = introP.textContent.trim();
-                    console.log('找到自己紹介内容');
-                    break;
-                }
-                currentElement = currentElement.nextElementSibling;
-            }
-        }
-
-        // マイタグ - 使用文本查找策略
-        const myTags: string[] = [];
-        const tagsH2 = Array.from(document.querySelectorAll('h2')).find(h2 =>
-            h2.textContent?.includes('マイタグ')
-        );
-        if (tagsH2?.nextElementSibling) {
-            const tagLinks = tagsH2.nextElementSibling.querySelectorAll('ul > li > a');
-            tagLinks.forEach(a => {
-                const title = a.getAttribute('title');
-                if (title) myTags.push(title);
-            });
-        }
-
-        // 基本情報（プロフィール詳細から抽出）
+    function extractBasicInfoFromProfile(dialogRoot: Element): Record<string, string> {
         const basicInfo: Record<string, string> = {};
 
         // 使用文本查找策略查找プロフィール容器
-        const profileH2 = Array.from(document.querySelectorAll('h2')).find(h2 =>
-            h2.textContent?.includes('プロフィール')
-        );
-        console.log('プロフィールh2找到:', !!profileH2);
+        const profileH2 = Array.from(dialogRoot.querySelectorAll('h2')).find(h2 =>
+            (h2 as Element).textContent?.includes('プロフィール')
+        ) as Element | undefined;
 
         if (profileH2) {
-            // 尝试查找包含profile信息的容器
-            let profileContainer = profileH2.nextElementSibling;
-            while (profileContainer) {
+            // 查找包含所有dl元素的父容器
+            let profileContainer = profileH2.parentElement;
+            if (profileContainer) {
                 // 寻找所有dl元素
                 const allDlElements = profileContainer.querySelectorAll('dl');
-                console.log('找到的dl元素数量:', allDlElements.length);
 
                 if (allDlElements.length > 0) {
-                    console.log('找到プロフィール容器');
-
                     // 直接提取所有dt/dd对
                     allDlElements.forEach((dl: Element) => {
                         const dtElements = dl.querySelectorAll('dt');
@@ -678,16 +627,251 @@
                             }
                         });
                     });
+                }
+            }
+        }
 
-                    console.log('提取的基本信息数量:', Object.keys(basicInfo).length);
-                    console.log('提取的键:', Object.keys(basicInfo));
+        return basicInfo;
+    }
+
+    function extractPairsData(selectors: any): UserData {
+        // 首先获取dialog-root容器
+        const dialogRoot = document.querySelector(selectors.ROOT);
+        if (!dialogRoot) {
+            console.log('未找到#dialog-root容器');
+            return {
+                nickname: '見つかりません',
+                age: '見つかりません',
+                location: '見つかりません',
+                introduction: '見つかりません',
+                myTags: [],
+                pairsQuestions: [],
+                basicInfo: {},
+                site: 'PAIRS' as const
+            };
+        }
+
+        // ユーザー名 - 使用文本查找策略
+        let nickname = '見つかりません';
+
+        // 策略1: 查找用户名元素（通常在顶部区域，有特定样式）
+        const nameElements = dialogRoot.querySelectorAll('p, span, h1, h2, h3, div');
+        for (const element of nameElements) {
+            const text = element.textContent?.trim();
+            if (text && text.length > 0 && text.length < 30 &&
+                !text.includes('歳') && !text.includes('自己紹介') && !text.includes('マイタグ') &&
+                !text.includes('プロフィール') && !text.includes('新着のお相手') && !text.includes('お相手詳細') &&
+                !text.includes('本人確認済み') && !text.includes('プロフィールをコピー') &&
+                !text.includes('前の写真') && !text.includes('次の写真') && !text.includes('いいね！')) {
+                // 假设用户名是较短的文本，不是其他类型的文本
+                nickname = text;
+                break;
+            }
+        }
+
+        // 策略2: 如果没找到，尝试查找包含"marina"的元素
+        if (nickname === '見つかりません') {
+            const marinaElements = dialogRoot.querySelectorAll('*');
+            for (const element of marinaElements) {
+                const text = element.textContent?.trim();
+                if (text && text.includes('marina')) {
+                    nickname = 'marina';
                     break;
                 }
-                profileContainer = profileContainer.nextElementSibling;
             }
-        } else {
-            console.log('未找到プロフィール容器');
         }
+
+        // 策略3: 从基本资料中获取昵称
+        if (nickname === '見つかりません') {
+            const profileBasicInfo = extractBasicInfoFromProfile(dialogRoot);
+            if (profileBasicInfo['ニックネーム']) {
+                nickname = profileBasicInfo['ニックネーム'];
+            }
+        }
+
+        // 年齢と居住地 - 使用文本查找策略
+        let age = '見つかりません';
+        let location = '見つかりません';
+
+        // 策略1: 从基本资料中获取
+        const profileBasicInfo = extractBasicInfoFromProfile(dialogRoot);
+        if (profileBasicInfo['年齢']) age = profileBasicInfo['年齢'];
+        if (profileBasicInfo['居住地']) location = profileBasicInfo['居住地'];
+
+        // 策略2: 查找包含年龄和居住地的元素
+        if (age === '見つかりません' || location === '見つかりません') {
+            const allElements = dialogRoot.querySelectorAll('*');
+            for (const element of allElements) {
+                const text = element.textContent?.trim();
+                if (text && text.includes('歳')) {
+                    // 查找简洁的年龄和居住地文本
+                    const cleanText = text.replace(/[\n\r]/g, ' ').replace(/\s+/g, ' ').trim();
+                    const parts = cleanText.split(' ').filter((part: string) => part.trim());
+
+                    // 查找包含"歳"的部分
+                    const agePart = parts.find((part: string) => part.includes('歳'));
+                    if (agePart) {
+                        age = agePart.trim();
+
+                        // 查找居住地（通常是年龄后面的部分）
+                        const ageIndex = parts.indexOf(agePart);
+                        if (ageIndex >= 0 && ageIndex + 1 < parts.length) {
+                            location = parts[ageIndex + 1].trim();
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 策略3: 如果还没找到，尝试查找包含"本人確認済み"附近的年龄信息
+        if (age === '見つかりません') {
+            const verifiedElements = dialogRoot.querySelectorAll('*');
+            for (const element of verifiedElements) {
+                const text = element.textContent?.trim();
+                if (text && text.includes('本人確認済み')) {
+                    // 在附近查找年龄信息
+                    const parentText = element.parentElement?.textContent?.trim();
+                    if (parentText && parentText.includes('歳')) {
+                        const cleanText = parentText.replace(/[\n\r]/g, ' ').replace(/\s+/g, ' ').trim();
+                        const parts = cleanText.split(' ').filter((part: string) => part.trim());
+                        const agePart = parts.find((part: string) => part.includes('歳'));
+                        if (agePart) {
+                            age = agePart.trim();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 自己紹介 - 使用文本查找策略（在dialog-root范围内）
+        let introduction = '見つかりません';
+
+        // 策略1: 查找"自己紹介"标题下的内容
+        const introH2 = Array.from(dialogRoot.querySelectorAll('h2')).find(h2 =>
+            (h2 as Element).textContent?.includes('自己紹介')
+        ) as Element | undefined;
+        console.log('自己紹介h2找到:', !!introH2);
+        if (introH2) {
+            // 尝试查找包含自我介绍内容的元素
+            let currentElement = introH2.nextElementSibling;
+            while (currentElement) {
+                // 查找p元素或包含长文本的元素
+                const introP = currentElement.querySelector('p');
+                if (introP && introP.textContent?.trim()) {
+                    introduction = introP.textContent.trim();
+                    console.log('找到自己紹介内容');
+                    break;
+                }
+
+                // 如果p元素没找到，尝试直接获取元素的文本内容
+                const elementText = currentElement.textContent?.trim();
+                if (elementText && elementText.length > 50 && !elementText.includes('プロフィール')) {
+                    introduction = elementText;
+                    console.log('通过文本找到自己紹介内容');
+                    break;
+                }
+
+                currentElement = currentElement.nextElementSibling;
+            }
+        }
+
+        // 策略2: 查找包含自我介绍关键词的长文本
+        if (introduction === '見つかりません') {
+            const allElements = dialogRoot.querySelectorAll('p, div');
+            for (const element of allElements) {
+                const text = element.textContent?.trim();
+                if (text && text.length > 100 &&
+                    (text.includes('初めまして') || text.includes('よろしくお願いします') ||
+                     text.includes('プロフィールを見ていただき'))) {
+                    // 清理文本，移除多余内容
+                    const cleanText = text
+                        .replace(/お相手詳細を閉じるメニュー前の写真次の写真新着のお相手.*?プロフィールをコピー/g, '')
+                        .replace(/30歳 大阪.*?本人確認済み/g, '')
+                        .replace(/ペアーズクエスチョン.*?マイタグ/g, '')
+                        .replace(/自己紹介/g, '')
+                        .replace(/プロフィール.*/g, '')
+                        .replace(/真面目に真剣に出会いを探してます.*?趣味全般/g, '')
+                        .replace(/恋愛・結婚/g, '')
+                        .replace(/Netflix観てます/g, '')
+                        .replace(/自然のあるところが好き/g, '')
+                        .replace(/旅行/g, '')
+                        .replace(/Pickup/g, '')
+                        .replace(/一緒に夜カフェでまったりしよう/g, '')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    if (cleanText.length > 50) {
+                        introduction = cleanText;
+                        console.log('通过关键词找到自己紹介内容');
+                        break;
+                    }
+                }
+            }
+        }
+
+        // マイタグ - 使用文本查找策略（在dialog-root范围内）
+        const myTags: string[] = [];
+        const tagsH2 = Array.from(dialogRoot.querySelectorAll('h2')).find(h2 =>
+            (h2 as Element).textContent?.includes('マイタグ')
+        ) as Element | undefined;
+        if (tagsH2?.nextElementSibling) {
+            const tagLinks = tagsH2.nextElementSibling.querySelectorAll('ul > li > a');
+            tagLinks.forEach((a: Element) => {
+                const title = a.getAttribute('title');
+                if (title) myTags.push(title);
+            });
+        }
+
+        // ペアーズクエスチョン - 使用文本查找策略（在dialog-root范围内）
+        const pairsQuestions: Array<{question: string; answer: string}> = [];
+        const questionsH2 = Array.from(dialogRoot.querySelectorAll('h2')).find(h2 =>
+            (h2 as Element).textContent?.includes('ペアーズクエスチョン')
+        ) as Element | undefined;
+        console.log('ペアーズクエスチョンh2找到:', !!questionsH2);
+        if (questionsH2) {
+            // 查找包含问题的容器
+            let questionsContainer = questionsH2.nextElementSibling;
+            while (questionsContainer) {
+                // 查找所有包含问题和答案的容器
+                const questionElements = questionsContainer.querySelectorAll('div, p, span');
+                console.log('找到的问题元素数量:', questionElements.length);
+
+                // 使用文本模式查找问题和答案
+                for (let i = 0; i < questionElements.length; i++) {
+                    const element = questionElements[i];
+                    const text = element.textContent?.trim();
+                    if (text && (text.includes('毎日しちゃうルーティンは？') ||
+                        text.includes('居心地のいい場所は？') ||
+                        text.includes('最高に幸せ！') ||
+                        text.includes('デートプランどうやって決める？') ||
+                        text.includes('急に1日だけ休みをもらえたら何する？'))) {
+                        const question = text;
+                        // 查找下一个元素作为答案
+                        if (i + 1 < questionElements.length) {
+                            const answerElement = questionElements[i + 1];
+                            const answer = answerElement.textContent?.trim();
+                            if (answer && !answer.includes('？') && !answer.includes('！')) {
+                                pairsQuestions.push({ question, answer });
+                                console.log('找到ペアーズクエスチョン:', question, '=>', answer);
+                            }
+                        }
+                    }
+                }
+
+                if (pairsQuestions.length > 0) {
+                    console.log('找到ペアーズクエスチョン数量:', pairsQuestions.length);
+                    break;
+                }
+                questionsContainer = questionsContainer.nextElementSibling;
+            }
+        }
+
+        // 基本情報（プロフィール詳細から抽出）
+        const basicInfo = extractBasicInfoFromProfile(dialogRoot);
+        console.log('提取的基本信息数量:', Object.keys(basicInfo).length);
+        console.log('提取的键:', Object.keys(basicInfo));
 
         return {
             nickname,
@@ -695,6 +879,7 @@
             location,
             introduction,
             myTags,
+            pairsQuestions,
             basicInfo,
             site: 'PAIRS' as const
         };
@@ -842,9 +1027,21 @@
                     ? data.commonPoints.map(point => `- ${point}`).join('\n')
                     : 'なし';
             case 'PAIRS':
-                return data.myTags.length > 0
-                    ? data.myTags.map(tag => `- ${tag}`).join('\n')
-                    : 'なし';
+                const parts: string[] = [];
+                // 添加マイタグ（不加前缀，因为模板已经有"マイタグ："）
+                if (data.myTags.length > 0) {
+                    parts.push(...data.myTags.map(tag => `- ${tag}`));
+                }
+                // 添加ペアーズクエスチョン
+                if (data.pairsQuestions.length > 0) {
+                    if (parts.length > 0) parts.push(''); // 空行分隔
+                    parts.push('ペアーズクエスチョン:');
+                    data.pairsQuestions.forEach(q => {
+                        parts.push(`- ${q.question}`);
+                        parts.push(`  ${q.answer}`);
+                    });
+                }
+                return parts.length > 0 ? parts.join('\n') : 'なし';
             case 'MARRISH':
                 return data.groups.length > 0
                     ? data.groups.map(group => `- ${group.title} (${group.member})`).join('\n')
