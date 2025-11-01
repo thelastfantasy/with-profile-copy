@@ -53,17 +53,42 @@ jobs:
           exit 1
         fi
 
+    - name: Check if src files changed
+      run: |
+        # Calculate hash of src directory TypeScript files
+        SRC_HASH=$(find src -name "*.ts" -type f -exec sha256sum {} + | sort | sha256sum | cut -d' ' -f1)
+        echo "Current src files hash: $SRC_HASH"
+
+        # Check if dist branch exists and get previous hash
+        if git ls-remote --heads origin dist | grep -q dist; then
+          git fetch origin dist
+          PREV_HASH=$(git show origin/dist:src-hash.txt 2>/dev/null || echo "")
+          echo "Previous src files hash: $PREV_HASH"
+
+          if [ "$SRC_HASH" = "$PREV_HASH" ]; then
+            echo "✅ No changes in src files, skipping script.user.js update"
+            echo "skip_update=true" >> $GITHUB_ENV
+          else
+            echo "🔧 Source files changed, will update script.user.js"
+            echo "skip_update=false" >> $GITHUB_ENV
+          fi
+        else
+          echo "🔧 No dist branch found, will create with script.user.js"
+          echo "skip_update=false" >> $GITHUB_ENV
+        fi
+
     - name: Commit and push to dist branch
+      if: env.skip_update == 'false'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
 
-        if git diff --quiet script.user.js; then
-          echo "No changes to script.user.js"
-        else
-          git add script.user.js
-          git commit -m "chore: regenerate script.user.js after merge [skip ci]"
-          git checkout -b dist
-          git push origin dist --force
-          echo "✅ Updated script.user.js pushed to dist branch"
-        fi
+        # Save current src hash
+        find src -name "*.ts" -type f -exec sha256sum {} + | sort | sha256sum | cut -d' ' -f1 > src-hash.txt
+
+        # Commit and push to dist branch
+        git add script.user.js src-hash.txt
+        git commit -m "chore: regenerate script.user.js after src changes [skip ci]"
+        git checkout -b dist
+        git push origin dist --force
+        echo "✅ Updated script.user.js pushed to dist branch"
