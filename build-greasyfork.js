@@ -15,7 +15,7 @@ const header = `// ==UserScript==
 // @description  with.isとpairs.lvとmarrish.comのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します。marrish.comのチャットページでメッセージをコピーできます。
 // @author       Your Name
 // @match        https://with.is/users/*
-// @match        https://pairs.lv/message/detail/*
+// @match        https://pairs.lv/*
 // @match        https://marrish.com/profile/detail/partner/*
 // @match        https://marrish.com/message/index/*
 // @grant        GM_setClipboard

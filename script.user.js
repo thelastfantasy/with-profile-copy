@@ -5,7 +5,7 @@
 // @description  with.isとpairs.lvとmarrish.comのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します。marrish.comのチャットページでメッセージをコピーできます。
 // @author       Your Name
 // @match        https://with.is/users/*
-// @match        https://pairs.lv/message/detail/*
+// @match        https://pairs.lv/*
 // @match        https://marrish.com/profile/detail/partner/*
 // @match        https://marrish.com/message/index/*
 // @grant        GM_setClipboard
@@ -18,6 +18,9 @@
 "use strict";
 (function () {
     'use strict';
+    let lastUrl = window.location.href;
+    let pairsObserver = null;
+    let isAddingPairsButton = false;
     const CONFIG = {
         MESSAGE_DISPLAY_TIME: 3000,
         PAIRS_MODAL_TIMEOUT: 10000
@@ -98,11 +101,40 @@
     else {
         init();
     }
+    window.addEventListener('hashchange', handleRouteChange);
+    window.addEventListener('popstate', handleRouteChange);
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+    history.pushState = function (...args) {
+        originalPushState.apply(this, args);
+        handleRouteChange();
+    };
+    history.replaceState = function (...args) {
+        originalReplaceState.apply(this, args);
+        handleRouteChange();
+    };
+    function isPairsUserPage(url = window.location.href) {
+        return url.includes('pairs.lv/message/detail/') || url.includes('/partner/');
+    }
+    function handleRouteChange() {
+        const currentUrl = window.location.href;
+        if (currentUrl !== lastUrl) {
+            lastUrl = currentUrl;
+            console.log('URL changed, checking for pairs.lv user pages...');
+            if (isPairsUserPage(currentUrl)) {
+                if (pairsObserver) {
+                    pairsObserver.disconnect();
+                    pairsObserver = null;
+                }
+                waitForPairsModal();
+            }
+        }
+    }
     function init() {
         if (window.location.href.includes('with.is/users/')) {
             addCopyButton('WITH_IS');
         }
-        else if (window.location.href.includes('pairs.lv/message/detail/')) {
+        else if (isPairsUserPage()) {
             waitForPairsModal();
         }
         else if (window.location.href.includes('marrish.com/profile/detail/partner/')) {
@@ -120,33 +152,60 @@
         if (tryAddPairsButton()) {
             return;
         }
-        const observer = new MutationObserver((mutations) => {
+        if (pairsObserver) {
+            pairsObserver.disconnect();
+            pairsObserver = null;
+        }
+        pairsObserver = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 if (mutation.type === 'childList') {
-                    if (tryAddPairsButton()) {
-                        observer.disconnect();
+                    const dialogRoot = document.querySelector(CSS_SELECTORS.PAIRS.ROOT);
+                    if (dialogRoot && tryAddPairsButton()) {
                         console.log('pairs.lv模态框已加载，按钮已添加');
+                        if (pairsObserver) {
+                            pairsObserver.disconnect();
+                            pairsObserver = null;
+                        }
                         return;
                     }
                 }
             }
         });
-        observer.observe(document.body, {
+        pairsObserver.observe(document.body, {
             childList: true,
             subtree: true
         });
         setTimeout(() => {
-            observer.disconnect();
-            console.log('pairs.lv模态框加载超时');
+            if (pairsObserver) {
+                pairsObserver.disconnect();
+                pairsObserver = null;
+                console.log('pairs.lv模态框加载超时');
+            }
         }, CONFIG.PAIRS_MODAL_TIMEOUT);
     }
     function tryAddPairsButton() {
-        const buttonContainer = document.querySelector(CSS_SELECTORS.PAIRS.BUTTON_INSERT);
-        if (buttonContainer) {
-            addCopyButton('PAIRS');
-            return true;
+        if (isAddingPairsButton) {
+            return false;
         }
-        return false;
+        isAddingPairsButton = true;
+        try {
+            const buttonContainer = document.querySelector(CSS_SELECTORS.PAIRS.BUTTON_INSERT);
+            if (buttonContainer) {
+                const existingButton = buttonContainer.parentNode?.querySelector('button[style*="background: #007bff"]');
+                if (!existingButton) {
+                    addCopyButton('PAIRS');
+                    return true;
+                }
+                else {
+                    console.log('按钮已存在，跳过重复添加');
+                    return true;
+                }
+            }
+            return false;
+        }
+        finally {
+            isAddingPairsButton = false;
+        }
     }
     function waitForMarrishBaseInfo() {
         console.log('等待marrish.com基本信息区域加载...');
@@ -395,7 +454,7 @@
             selectors = CSS_SELECTORS.WITH_IS;
             site = 'WITH_IS';
         }
-        else if (window.location.href.includes('pairs.lv/message/detail/')) {
+        else if (isPairsUserPage()) {
             selectors = CSS_SELECTORS.PAIRS;
             site = 'PAIRS';
         }
