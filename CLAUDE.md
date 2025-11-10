@@ -74,3 +74,34 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 4. **合并PR时总是删除分支**
 5. **GitHub origin只保留main和dist分支**
 6. **GreasyFork从dist分支的script.user.js导入**
+
+## 关键工作流程规范
+
+### 分支管理
+- **必须**：在开始任何文件修改前，先从origin main分支创建新分支
+- **禁止**：直接在main分支上进行文件修改或提交
+- **正确流程**：
+  ```bash
+  # 1. 确保本地main分支与远程同步
+  git checkout main
+  git pull origin main
+
+  # 2. 创建新功能分支
+  git checkout -b feature/your-feature-name
+
+  # 3. 在新分支上进行文件修改和提交
+  # ... 修改文件 ...
+  git add .
+  git commit -m "feat: Your feature description"
+
+  # 4. 推送分支并创建PR
+  git push origin feature/your-feature-name
+  ```
+
+### 常见错误避免
+- ❌ 在main分支上直接运行 `git commit`
+- ❌ 在main分支上直接修改文件
+- ❌ 忘记创建新分支就开始工作
+- ✅ 始终从干净的main分支创建新分支
+- ✅ 所有开发工作都在功能分支上进行
+- ✅ 通过PR流程合并到main分支
