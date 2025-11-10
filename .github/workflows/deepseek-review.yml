@@ -20,11 +20,12 @@ jobs:
     - name: Run DeepSeek Code Review
       uses: anthropics/claude-code-action@v1
       with:
+        anthropic_api_key: ${{ secrets.DEEPSEEK_API_KEY }}
         settings: |
           {
             "env": {
               "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
-              "ANTHROPIC_API_KEY": "${{ secrets.DEEPSEEK_API_KEY }}",
+              "ANTHROPIC_AUTH_TOKEN": "${{ secrets.DEEPSEEK_API_KEY }}",
               "ANTHROPIC_MODEL": "deepseek-chat",
               "ANTHROPIC_SMALL_FAST_MODEL": "deepseek-chat",
               "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
