@@ -20,6 +20,7 @@ jobs:
     - name: Run DeepSeek Code Review
       uses: anthropics/claude-code-action@v1
       with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         anthropic_api_key: ${{ secrets.DEEPSEEK_API_KEY }}
         settings: |
           {
