@@ -65,3 +65,5 @@ jobs:
           请使用 `gh pr comment` 提供总体反馈，使用 `mcp__github_inline_comment__create_inline_comment` 在具体代码位置添加行内评论。
 
           请提供具体的改进建议和潜在问题。
+        claude_args: |
+          --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr view:*)"
