@@ -1,0 +1,59 @@
+name: DeepSeek Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  code-review:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run DeepSeek Code Review
+      uses: anthropics/claude-code-action@v1
+      with:
+        settings: |
+          {
+            "env": {
+              "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
+              "ANTHROPIC_AUTH_TOKEN": "${{ secrets.DEEPSEEK_API_KEY }}",
+              "ANTHROPIC_MODEL": "deepseek-chat",
+              "ANTHROPIC_SMALL_FAST_MODEL": "deepseek-chat",
+              "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+              "API_TIMEOUT_MS": "600000"
+            }
+          }
+        prompt: |
+          请对这个TypeScript油猴脚本进行代码审查，重点关注：
+
+          ## 项目概述
+          这是一个用于with.is、pairs.lv和marrish.com网站的油猴脚本，主要功能：
+          - 在用户资料页面添加复制按钮
+          - 提取用户信息并生成AI对话提示
+          - 支持多个约会网站的兼容
+
+          ## 审查重点
+          1. **代码质量**
+             - TypeScript类型定义是否完整准确
+             - 错误处理是否充分
+             - 代码结构是否清晰
+
+          2. **功能逻辑**
+             - CSS选择器是否稳定可靠
+             - MutationObserver的使用是否合理
+             - 剪贴板操作是否安全
+
+          3. **用户体验**
+             - 按钮插入位置是否合理
+             - 提示生成逻辑是否清晰
+             - 多网站兼容性
+
+          4. **安全性**
+             - 是否有潜在的安全风险
+             - 数据提取是否合规
+             - 权限使用是否合理
+
+          请提供具体的改进建议和潜在问题。
