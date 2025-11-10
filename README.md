@@ -112,6 +112,19 @@ npm run dev
 └── README.md
 ```
 
+## DeepSeek AI コードレビュー
+
+このプロジェクトはDeepSeek APIを統合しており、以下の自動コードレビュー機能を提供します：
+
+### 自動レビュー機能
+- **PRコードレビュー**: Pull Request作成/更新時に自動的にコードレビューを実行
+- **多角的評価**: コード品質、アーキテクチャ設計、セキュリティ、パフォーマンスなど
+
+### 設定方法
+1. GitHubリポジトリのSettings → Secrets and variables → Actions に移動
+2. `DEEPSEEK_API_KEY` という名前でDeepSeek APIキーを追加
+3. 詳細は [DEEPSEEK_INTEGRATION.md](./DEEPSEEK_INTEGRATION.md) を参照
+
 ## ライセンス
 
 MIT License
