@@ -1,11 +1,11 @@
-name: DeepSeek Code Review
+name: Claude Auto Review
 
 on:
   pull_request:
     types: [opened, synchronize]
 
 jobs:
-  code-review:
+  review:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -13,8 +13,7 @@ jobs:
       id-token: write
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 1
 
