@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         deai prompt generator
 // @namespace    http://tampermonkey.net/
-// @version      1.0.5
+// @version      1.0.6
 // @description  with.isとpairs.lvとmarrish.comのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します。marrish.comのチャットページでメッセージをコピーできます。
 // @author       Your Name
 // @match        https://with.is/users/*
@@ -120,7 +120,7 @@
         const currentUrl = window.location.href;
         if (currentUrl !== lastUrl) {
             lastUrl = currentUrl;
-            console.log('URL changed, checking for user pages...');
+            console.log('URL changed, checking for all supported pages...');
             if (currentUrl.includes('with.is/users/')) {
                 addCopyButton('WITH_IS');
             }
@@ -140,19 +140,26 @@
         }
     }
     function init() {
+        console.log('脚本初始化，当前URL:', window.location.href);
+        console.log('isPairsUserPage() 结果:', isPairsUserPage());
         if (window.location.href.includes('with.is/users/')) {
+            console.log('检测到with.is页面');
             addCopyButton('WITH_IS');
         }
         else if (isPairsUserPage()) {
+            console.log('检测到pairs.lv页面，执行pairs.lv逻辑');
             waitForPairsModal();
         }
         else if (window.location.href.includes('marrish.com/profile/detail/partner/')) {
+            console.log('检测到marrish.com页面，执行marrish.com逻辑');
             waitForMarrishBaseInfo();
         }
         else if (window.location.href.includes('marrish.com/message/index/')) {
+            console.log('检测到marrish.com聊天页面，执行聊天逻辑');
             waitForMarrishMessages();
         }
         else {
+            console.log('未匹配到支持的页面类型');
             return;
         }
     }
