@@ -165,25 +165,30 @@
     };
 
     function isPairsUserPage(url: string = window.location.href): boolean {
-        return url.includes('pairs.lv/message/detail/') || url.includes('/partner/');
+        return url.includes('pairs.lv/message/detail/');
     }
 
     function handleRouteChange() {
         const currentUrl = window.location.href;
         if (currentUrl !== lastUrl) {
             lastUrl = currentUrl;
-            console.log('URL changed, checking for pairs.lv user pages...');
+            console.log('URL changed, checking for user pages...');
 
-            // 如果是pairs.lv用户资料页面，重新初始化
-            if (isPairsUserPage(currentUrl)) {
+            // 根据当前URL重新初始化相应的功能
+            if (currentUrl.includes('with.is/users/')) {
+                addCopyButton('WITH_IS');
+            } else if (isPairsUserPage(currentUrl)) {
                 // 停止之前的观察器
                 if (pairsObserver) {
                     pairsObserver.disconnect();
                     pairsObserver = null;
                 }
-
                 // 重新等待模态框
                 waitForPairsModal();
+            } else if (currentUrl.includes('marrish.com/profile/detail/partner/')) {
+                waitForMarrishBaseInfo();
+            } else if (currentUrl.includes('marrish.com/message/index/')) {
+                waitForMarrishMessages();
             }
         }
     }

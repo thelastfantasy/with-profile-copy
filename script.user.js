@@ -114,19 +114,28 @@
         handleRouteChange();
     };
     function isPairsUserPage(url = window.location.href) {
-        return url.includes('pairs.lv/message/detail/') || url.includes('/partner/');
+        return url.includes('pairs.lv/message/detail/');
     }
     function handleRouteChange() {
         const currentUrl = window.location.href;
         if (currentUrl !== lastUrl) {
             lastUrl = currentUrl;
-            console.log('URL changed, checking for pairs.lv user pages...');
-            if (isPairsUserPage(currentUrl)) {
+            console.log('URL changed, checking for user pages...');
+            if (currentUrl.includes('with.is/users/')) {
+                addCopyButton('WITH_IS');
+            }
+            else if (isPairsUserPage(currentUrl)) {
                 if (pairsObserver) {
                     pairsObserver.disconnect();
                     pairsObserver = null;
                 }
                 waitForPairsModal();
+            }
+            else if (currentUrl.includes('marrish.com/profile/detail/partner/')) {
+                waitForMarrishBaseInfo();
+            }
+            else if (currentUrl.includes('marrish.com/message/index/')) {
+                waitForMarrishMessages();
             }
         }
     }
