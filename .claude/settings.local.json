@@ -57,7 +57,8 @@
       "Bash(git commit -m \"fix: Update GitHub direct install link to dist branch\n\n- Change GitHub direct install link from releases to dist branch\n- Update URL to https://github.com/thelastfantasy/with-profile-copy/raw/dist/script.user.js\n- This fixes the broken installation link in README\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")",
       "Bash(git branch -d feature/pairs-lv-support fix/readme-install-links fix/workflow-dist-branch)",
       "Bash(gh run view 18715728802 --log)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(gh run list:*)"
     ],
     "deny": [],
     "ask": []
