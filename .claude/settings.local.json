@@ -58,7 +58,9 @@
       "Bash(git branch -d feature/pairs-lv-support fix/readme-install-links fix/workflow-dist-branch)",
       "Bash(gh run view 18715728802 --log)",
       "Bash(git commit:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(git revert:*)"
     ],
     "deny": [],
     "ask": []
