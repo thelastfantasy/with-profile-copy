@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         deai prompt generator
 // @namespace    http://tampermonkey.net/
-// @version      1.0.5
+// @version      1.0.6
 // @description  with.isとpairs.lvとmarrish.comのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します。marrish.comのチャットページでメッセージをコピーできます。
 // @author       Your Name
 // @match        https://with.is/users/*
@@ -165,43 +165,56 @@
     };
 
     function isPairsUserPage(url: string = window.location.href): boolean {
-        return url.includes('pairs.lv/message/detail/') || url.includes('/partner/');
+        return url.includes('pairs.lv/message/detail/');
     }
 
     function handleRouteChange() {
         const currentUrl = window.location.href;
         if (currentUrl !== lastUrl) {
             lastUrl = currentUrl;
-            console.log('URL changed, checking for pairs.lv user pages...');
+            console.log('URL changed, checking for all supported pages...');
 
-            // 如果是pairs.lv用户资料页面，重新初始化
-            if (isPairsUserPage(currentUrl)) {
+            // 根据当前URL重新初始化相应的功能
+            if (currentUrl.includes('with.is/users/')) {
+                addCopyButton('WITH_IS');
+            } else if (isPairsUserPage(currentUrl)) {
                 // 停止之前的观察器
                 if (pairsObserver) {
                     pairsObserver.disconnect();
                     pairsObserver = null;
                 }
-
                 // 重新等待模态框
                 waitForPairsModal();
+            } else if (currentUrl.includes('marrish.com/profile/detail/partner/')) {
+                waitForMarrishBaseInfo();
+            } else if (currentUrl.includes('marrish.com/message/index/')) {
+                waitForMarrishMessages();
             }
         }
     }
 
     function init() {
+        console.log('脚本初始化，当前URL:', window.location.href);
+        console.log('isPairsUserPage() 结果:', isPairsUserPage());
+
         // サイトを判定して適切なボタン追加関数を呼び出す
         if (window.location.href.includes('with.is/users/')) {
+            console.log('检测到with.is页面');
             addCopyButton('WITH_IS');
         } else if (isPairsUserPage()) {
+            console.log('检测到pairs.lv页面，执行pairs.lv逻辑');
             // pairs.lv: 使用MutationObserver监听模态框加载
             waitForPairsModal();
         } else if (window.location.href.includes('marrish.com/profile/detail/partner/')) {
+            console.log('检测到marrish.com页面，执行marrish.com逻辑');
             // marrish.com: 使用MutationObserver监听基本信息区域加载
             waitForMarrishBaseInfo();
         } else if (window.location.href.includes('marrish.com/message/index/')) {
+            console.log('检测到marrish.com聊天页面，执行聊天逻辑');
             // marrish.com聊天页面: 使用MutationObserver监听消息加载
             waitForMarrishMessages();
         } else {
+            console.log('未匹配到支持的页面类型');
             // 其他pairs.lv页面，不添加按钮但保持路由监听
             return;
         }
