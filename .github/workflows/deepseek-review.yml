@@ -36,16 +36,14 @@ jobs:
         prompt: |
           REPO: ${{ github.repository }} PR NUMBER: ${{ github.event.pull_request.number }}
 
-          请对这个TypeScript油猴脚本进行简洁的代码审查：
-
-          项目：多网站用户脚本（with.is/pairs.lv/marrish.com）
-          功能：添加复制按钮，提取用户信息生成AI提示
+          请对本次提交中更改的文件进行简洁的代码审查。
+          只关注实际修改的代码，不要审查未更改的文件。
 
           审查重点：
-          - TypeScript类型定义和错误处理
-          - MutationObserver使用合理性
-          - 剪贴板操作安全性
-          - 多网站兼容性
+          - 代码逻辑是否正确
+          - 是否有明显的错误或潜在问题
+          - 更改是否与PR描述一致
+          - 是否有安全风险
 
           请使用 `gh pr comment` 提供总体反馈，使用 `mcp__github_inline_comment__create_inline_comment` 在具体代码位置添加行内评论。
           反馈要具体、简洁、实用。
