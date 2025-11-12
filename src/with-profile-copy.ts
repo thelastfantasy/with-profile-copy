@@ -346,10 +346,10 @@
             return true;
         }
 
-        // 检测手机版 - 在"過去30日"后面添加按钮
+        // 检测手机版 - 在点赞数元素后面添加按钮
         const mobileLikeCount = document.querySelector(CSS_SELECTORS.MARRISH.MOBILE_LIKE_COUNT);
         if (mobileLikeCount) {
-            console.log('检测到手机版marrish.com，在点赞数后面添加按钮');
+            console.log('检测到手机版marrish.com，在点赞数元素后面添加按钮');
             addCopyButton('MARRISH');
             return true;
         }
