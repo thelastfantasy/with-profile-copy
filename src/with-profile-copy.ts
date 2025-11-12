@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         deai prompt generator
 // @namespace    http://tampermonkey.net/
-// @version      1.0.6
+// @version      1.0.7
 // @description  with.isとpairs.lvとmarrish.comのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します。marrish.comのチャットページでメッセージをコピーできます。
 // @author       Your Name
 // @match        https://with.is/users/*
@@ -132,6 +132,13 @@
             DETAIL_ITEM: '.as-profile-detail-item',
             DETAIL_ITEM_TITLE: '.as-profile-detail-item-title',
             DETAIL_ITEM_DATE: '.as-profile-detail-item-date',
+            // 手机版选择器
+            MOBILE_ONLINE_INFO: '.as-prof-info__online',
+            MOBILE_LIKE_COUNT: '.as-prof-like-count',
+            MOBILE_BASE_INFO: '.as-prof-info__base',
+            MOBILE_NAME: '.as-prof-info__name',
+            MOBILE_AGE: '.as-prof-info__age',
+            MOBILE_AREA: '.as-prof-info__area',
             // 聊天页面选择器
             MESSAGE_BUBBLE: '.yi-message-form-text-body-bg1, .yi-message-form-text-body-bg1-me',
             MESSAGE_CONTENT: 'p',
@@ -331,11 +338,22 @@
     }
 
     function tryAddMarrishButton(): boolean {
-        const buttonContainer = document.querySelector(CSS_SELECTORS.MARRISH.AREA);
-        if (buttonContainer) {
+        // 优先检测PC版
+        const pcButtonContainer = document.querySelector(CSS_SELECTORS.MARRISH.AREA);
+        if (pcButtonContainer) {
+            console.log('检测到PC版marrish.com，在居住地后面添加按钮');
             addCopyButton('MARRISH');
             return true;
         }
+
+        // 检测手机版 - 在"過去30日"后面添加按钮
+        const mobileLikeCount = document.querySelector(CSS_SELECTORS.MARRISH.MOBILE_LIKE_COUNT);
+        if (mobileLikeCount) {
+            console.log('检测到手机版marrish.com，在点赞数后面添加按钮');
+            addCopyButton('MARRISH');
+            return true;
+        }
+
         return false;
     }
 
@@ -554,8 +572,12 @@
             buttonContainer = document.querySelector(CSS_SELECTORS.PAIRS.BUTTON_INSERT);
             buttonText = '📋 プロフィールをコピー';
         } else if (site === 'MARRISH') {
-            // marrish.com: 居住地要素の後ろに追加
+            // marrish.com: 优先检测PC版，然后检测手机版
             buttonContainer = document.querySelector(CSS_SELECTORS.MARRISH.AREA);
+            if (!buttonContainer) {
+                // 如果PC版没找到，尝试手机版
+                buttonContainer = document.querySelector(CSS_SELECTORS.MARRISH.MOBILE_LIKE_COUNT);
+            }
             buttonText = '📋 プロフィールをコピー';
         }
 
@@ -622,6 +644,16 @@
         } else if (window.location.href.includes('marrish.com/profile/detail/partner/')) {
             selectors = CSS_SELECTORS.MARRISH;
             site = 'MARRISH';
+
+            // 检测是否为移动版marrish.com
+            const mobileBaseInfo = document.querySelector(CSS_SELECTORS.MARRISH.MOBILE_BASE_INFO);
+            if (mobileBaseInfo) {
+                console.log('检测到移动版marrish.com，使用移动版数据提取');
+                return extractMarrishMobileData(selectors);
+            } else {
+                console.log('检测到PC版marrish.com，使用PC版数据提取');
+                return extractMarrishData(selectors);
+            }
         } else {
             throw new Error('サポートされていないサイトです');
         }
@@ -1035,6 +1067,80 @@
 
                     if (title && date) {
                         // 存储原始数据用于分组显示
+                        const key = title;
+                        basicInfo[key] = {
+                            value: date,
+                            group: subTitle || 'その他'
+                        };
+                    }
+                }
+            });
+        });
+
+        return {
+            nickname: name,
+            age,
+            location,
+            groups,
+            selfPr,
+            basicInfo,
+            site: 'MARRISH' as const
+        };
+    }
+
+    function extractMarrishMobileData(selectors: any): UserData {
+        // 移动版基本信息提取
+        const name = document.querySelector(selectors.MOBILE_NAME)?.textContent?.trim() || '見つかりません';
+        const age = document.querySelector(selectors.MOBILE_AGE)?.textContent?.trim() || '見つかりません';
+        const location = document.querySelector(selectors.MOBILE_AREA)?.textContent?.trim() || '見つかりません';
+
+        // 参加グループ提取（移动版可能使用相同的选择器）
+        const groups: Array<{ title: string; member: string }> = [];
+        const groupElements = document.querySelectorAll(selectors.GROUP_ITEMS);
+        groupElements.forEach(el => {
+            const title = el.querySelector(selectors.GROUP_TITLE)?.textContent?.trim();
+            const member = el.querySelector(selectors.GROUP_MEMBER)?.textContent?.trim();
+            if (title) {
+                groups.push({
+                    title,
+                    member: member || '不明'
+                });
+            }
+        });
+
+        // 自己PR提取 - 移动版可能使用相同的选择器
+        const selfPrElement = document.querySelector(selectors.SELF_PR);
+        let selfPr = '見つかりません';
+        if (selfPrElement) {
+            const htmlContent = selfPrElement.innerHTML;
+            selfPr = htmlContent
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<[^>]*>/g, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        }
+
+        // 詳細プロフィール提取（移动版可能使用相同的选择器）
+        const basicInfo: Record<string, { value: string; group: string }> = {};
+        const detailGroups = document.querySelectorAll(selectors.DETAIL_GROUP);
+        detailGroups.forEach(group => {
+            const subTitle = group.querySelector(selectors.DETAIL_SUB_TITLE)?.textContent?.trim();
+            const detailItems = group.querySelectorAll(selectors.DETAIL_ITEM);
+
+            detailItems.forEach((item: Element) => {
+                const title = item.querySelector(selectors.DETAIL_ITEM_TITLE)?.textContent?.trim();
+                const dateElement = item.querySelector(selectors.DETAIL_ITEM_DATE);
+                if (title && dateElement) {
+                    let date = title === '活動エリア' ?
+                        dateElement.innerHTML
+                            .replace(/<br\s*\/?>/gi, ',')
+                            .replace(/<[^>]*>/g, '')
+                            .trim()
+                            .replace(/,\s*,/g, ',')
+                            .replace(/,$/, '') :
+                        dateElement.textContent?.trim();
+
+                    if (title && date) {
                         const key = title;
                         basicInfo[key] = {
                             value: date,
