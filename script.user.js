@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         deai prompt generator
 // @namespace    http://tampermonkey.net/
-// @version      1.0.6
+// @version      1.0.7
 // @description  with.isとpairs.lvとmarrish.comのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します。marrish.comのチャットページでメッセージをコピーできます。
 // @author       Your Name
 // @match        https://with.is/users/*
@@ -90,6 +90,12 @@
             DETAIL_ITEM: '.as-profile-detail-item',
             DETAIL_ITEM_TITLE: '.as-profile-detail-item-title',
             DETAIL_ITEM_DATE: '.as-profile-detail-item-date',
+            MOBILE_ONLINE_INFO: '.as-prof-info__online',
+            MOBILE_LIKE_COUNT: '.as-prof-like-count',
+            MOBILE_BASE_INFO: '.as-prof-info__base',
+            MOBILE_NAME: '.as-prof-info__name',
+            MOBILE_AGE: '.as-prof-info__age',
+            MOBILE_AREA: '.as-prof-info__area',
             MESSAGE_BUBBLE: '.yi-message-form-text-body-bg1, .yi-message-form-text-body-bg1-me',
             MESSAGE_CONTENT: 'p',
             SPEAKER_NAME: '.yi-message-form-phone_head_name_textover'
@@ -249,8 +255,15 @@
         }, CONFIG.PAIRS_MODAL_TIMEOUT);
     }
     function tryAddMarrishButton() {
-        const buttonContainer = document.querySelector(CSS_SELECTORS.MARRISH.AREA);
-        if (buttonContainer) {
+        const pcButtonContainer = document.querySelector(CSS_SELECTORS.MARRISH.AREA);
+        if (pcButtonContainer) {
+            console.log('检测到PC版marrish.com，在居住地后面添加按钮');
+            addCopyButton('MARRISH');
+            return true;
+        }
+        const mobileLikeCount = document.querySelector(CSS_SELECTORS.MARRISH.MOBILE_LIKE_COUNT);
+        if (mobileLikeCount) {
+            console.log('检测到手机版marrish.com，在点赞数元素后面添加按钮');
             addCopyButton('MARRISH');
             return true;
         }
@@ -425,6 +438,9 @@
         }
         else if (site === 'MARRISH') {
             buttonContainer = document.querySelector(CSS_SELECTORS.MARRISH.AREA);
+            if (!buttonContainer) {
+                buttonContainer = document.querySelector(CSS_SELECTORS.MARRISH.MOBILE_LIKE_COUNT);
+            }
             buttonText = '📋 プロフィールをコピー';
         }
         if (!buttonContainer) {
@@ -477,6 +493,15 @@
         else if (window.location.href.includes('marrish.com/profile/detail/partner/')) {
             selectors = CSS_SELECTORS.MARRISH;
             site = 'MARRISH';
+            const mobileBaseInfo = document.querySelector(CSS_SELECTORS.MARRISH.MOBILE_BASE_INFO);
+            if (mobileBaseInfo) {
+                console.log('检测到移动版marrish.com，使用移动版数据提取');
+                return extractMarrishMobileData(selectors);
+            }
+            else {
+                console.log('检测到PC版marrish.com，使用PC版数据提取');
+                return extractMarrishData(selectors);
+            }
         }
         else {
             throw new Error('サポートされていないサイトです');
@@ -762,6 +787,69 @@
         const name = document.querySelector(selectors.NAME)?.textContent?.trim() || '見つかりません';
         const age = document.querySelector(selectors.AGE)?.textContent?.trim() || '見つかりません';
         const location = document.querySelector(selectors.AREA)?.textContent?.trim() || '見つかりません';
+        const groups = [];
+        const groupElements = document.querySelectorAll(selectors.GROUP_ITEMS);
+        groupElements.forEach(el => {
+            const title = el.querySelector(selectors.GROUP_TITLE)?.textContent?.trim();
+            const member = el.querySelector(selectors.GROUP_MEMBER)?.textContent?.trim();
+            if (title) {
+                groups.push({
+                    title,
+                    member: member || '不明'
+                });
+            }
+        });
+        const selfPrElement = document.querySelector(selectors.SELF_PR);
+        let selfPr = '見つかりません';
+        if (selfPrElement) {
+            const htmlContent = selfPrElement.innerHTML;
+            selfPr = htmlContent
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<[^>]*>/g, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        }
+        const basicInfo = {};
+        const detailGroups = document.querySelectorAll(selectors.DETAIL_GROUP);
+        detailGroups.forEach(group => {
+            const subTitle = group.querySelector(selectors.DETAIL_SUB_TITLE)?.textContent?.trim();
+            const detailItems = group.querySelectorAll(selectors.DETAIL_ITEM);
+            detailItems.forEach((item) => {
+                const title = item.querySelector(selectors.DETAIL_ITEM_TITLE)?.textContent?.trim();
+                const dateElement = item.querySelector(selectors.DETAIL_ITEM_DATE);
+                if (title && dateElement) {
+                    let date = title === '活動エリア' ?
+                        dateElement.innerHTML
+                            .replace(/<br\s*\/?>/gi, ',')
+                            .replace(/<[^>]*>/g, '')
+                            .trim()
+                            .replace(/,\s*,/g, ',')
+                            .replace(/,$/, '') :
+                        dateElement.textContent?.trim();
+                    if (title && date) {
+                        const key = title;
+                        basicInfo[key] = {
+                            value: date,
+                            group: subTitle || 'その他'
+                        };
+                    }
+                }
+            });
+        });
+        return {
+            nickname: name,
+            age,
+            location,
+            groups,
+            selfPr,
+            basicInfo,
+            site: 'MARRISH'
+        };
+    }
+    function extractMarrishMobileData(selectors) {
+        const name = document.querySelector(selectors.MOBILE_NAME)?.textContent?.trim() || '見つかりません';
+        const age = document.querySelector(selectors.MOBILE_AGE)?.textContent?.trim() || '見つかりません';
+        const location = document.querySelector(selectors.MOBILE_AREA)?.textContent?.trim() || '見つかりません';
         const groups = [];
         const groupElements = document.querySelectorAll(selectors.GROUP_ITEMS);
         groupElements.forEach(el => {
