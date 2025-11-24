@@ -1,5 +1,4 @@
 const fs = require("fs");
-const path = require("path");
 
 // 读取编译后的JavaScript文件
 const jsContent = fs.readFileSync("./dist/with-profile-copy.js", "utf8");
