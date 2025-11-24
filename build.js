@@ -1,14 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
 
 // 读取编译后的JavaScript文件
-const jsContent = fs.readFileSync('./dist/with-profile-copy.js', 'utf8');
+const jsContent = fs.readFileSync("./dist/with-profile-copy.js", "utf8");
 
 // 用户脚本头部
 const header = `// ==UserScript==
 // @name         deai prompt generator
 // @namespace    http://tampermonkey.net/
-// @version      1.0.5
+// @version      1.0.8
 // @description  with.isとpairs.lvとmarrish.comのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します。marrish.comのチャットページでメッセージをコピーできます。
 // @author       Your Name
 // @match        https://with.is/users/*
@@ -28,6 +27,6 @@ const header = `// ==UserScript==
 const finalContent = header + jsContent;
 
 // 写入最终的用户脚本文件
-fs.writeFileSync('./dist/with-profile-copy.user.js', finalContent);
+fs.writeFileSync("./dist/with-profile-copy.user.js", finalContent);
 
-console.log('✅ 用户脚本构建完成: dist/with-profile-copy.user.js');
+console.log("✅ 用户脚本构建完成: dist/with-profile-copy.user.js");
