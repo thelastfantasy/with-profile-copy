@@ -1,5 +1,8 @@
 const fs = require("fs");
 
+// 读取package.json获取版本信息
+const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"));
+
 // 读取编译后的JavaScript文件
 const jsContent = fs.readFileSync("./dist/with-profile-copy.js", "utf8");
 
@@ -7,7 +10,7 @@ const jsContent = fs.readFileSync("./dist/with-profile-copy.js", "utf8");
 const header = `// ==UserScript==
 // @name         deai prompt generator
 // @namespace    http://tampermonkey.net/
-// @version      1.0.9
+// @version      ${packageJson.version}
 // @description  with.isとpairs.lvとmarrish.comのユーザーページにコピーボタンを追加し、AI対話プロンプトを生成します。marrish.comのチャットページでメッセージをコピーできます。
 // @author       Your Name
 // @match        https://with.is/users/*
@@ -17,8 +20,8 @@ const header = `// ==UserScript==
 // @grant        GM_setClipboard
 // @license      MIT
 // @supportURL   https://github.com/thelastfantasy/with-profile-copy/issues
-// @updateURL    https://github.com/thelastfantasy/with-profile-copy/raw/main/script.user.js
-// @downloadURL  https://github.com/thelastfantasy/with-profile-copy/raw/main/script.user.js
+// @updateURL    https://github.com/thelastfantasy/with-profile-copy/raw/dist/script.user.js
+// @downloadURL  https://github.com/thelastfantasy/with-profile-copy/raw/dist/script.user.js
 // ==/UserScript==
 
 `;
