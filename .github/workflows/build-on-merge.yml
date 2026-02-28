@@ -67,6 +67,9 @@ jobs:
         COMPOSITE_HASH="${SRC_HASH}-${VERSION_HASH}"
         echo "Composite build hash: $COMPOSITE_HASH"
 
+        # Save composite hash to file for use in later steps
+        echo "$COMPOSITE_HASH" > composite-hash.txt
+
         # Check if dist branch exists and get previous hash
         if git ls-remote --heads origin dist | grep -q dist; then
           git fetch origin dist
@@ -91,8 +94,16 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
 
+        # Read composite hash from file
+        COMPOSITE_HASH=$(cat composite-hash.txt)
+        echo "Using composite hash: $COMPOSITE_HASH"
+
         # Save current build hash
         echo "$COMPOSITE_HASH" > build-hash.txt
+
+        # Verify build-hash.txt was created correctly
+        echo "build-hash.txt content:"
+        cat build-hash.txt
 
         # Commit and push to dist branch
         git add script.user.js build-hash.txt
