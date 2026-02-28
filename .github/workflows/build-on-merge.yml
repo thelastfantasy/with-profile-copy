@@ -53,23 +53,31 @@ jobs:
           exit 1
         fi
 
-    - name: Check if src files changed
+    - name: Check if build is needed
       run: |
         # Calculate hash of src directory TypeScript files
         SRC_HASH=$(find src -name "*.ts" -type f -exec sha256sum {} + | sort | sha256sum | cut -d' ' -f1)
         echo "Current src files hash: $SRC_HASH"
 
+        # Calculate hash of version-related files
+        VERSION_HASH=$(sha256sum package.json build.js | sort | sha256sum | cut -d' ' -f1)
+        echo "Current version files hash: $VERSION_HASH"
+
+        # Create composite hash
+        COMPOSITE_HASH="${SRC_HASH}-${VERSION_HASH}"
+        echo "Composite build hash: $COMPOSITE_HASH"
+
         # Check if dist branch exists and get previous hash
         if git ls-remote --heads origin dist | grep -q dist; then
           git fetch origin dist
-          PREV_HASH=$(git show origin/dist:src-hash.txt 2>/dev/null || echo "")
-          echo "Previous src files hash: $PREV_HASH"
+          PREV_HASH=$(git show origin/dist:build-hash.txt 2>/dev/null || echo "")
+          echo "Previous build hash: $PREV_HASH"
 
-          if [ "$SRC_HASH" = "$PREV_HASH" ]; then
-            echo "✅ No changes in src files, skipping script.user.js update"
+          if [ "$COMPOSITE_HASH" = "$PREV_HASH" ]; then
+            echo "✅ No changes in src files or version, skipping script.user.js update"
             echo "skip_update=true" >> $GITHUB_ENV
           else
-            echo "🔧 Source files changed, will update script.user.js"
+            echo "🔧 Source files or version changed, will update script.user.js"
             echo "skip_update=false" >> $GITHUB_ENV
           fi
         else
@@ -83,12 +91,12 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
 
-        # Save current src hash
-        find src -name "*.ts" -type f -exec sha256sum {} + | sort | sha256sum | cut -d' ' -f1 > src-hash.txt
+        # Save current build hash
+        echo "$COMPOSITE_HASH" > build-hash.txt
 
         # Commit and push to dist branch
-        git add script.user.js src-hash.txt
-        git commit -m "chore: regenerate script.user.js after src changes [skip ci]"
+        git add script.user.js build-hash.txt
+        git commit -m "chore: regenerate script.user.js after build changes [skip ci]"
         git checkout -b dist
         git push origin dist --force
         echo "✅ Updated script.user.js pushed to dist branch"
